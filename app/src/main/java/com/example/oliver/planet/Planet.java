@@ -10,22 +10,12 @@ import android.graphics.Canvas;
 
 public class Planet extends StellarObject {
 
-    private float radius;
-
     // Acceleration constant
     private final float G = 12.0f;
 
     public Planet(float x, float y, float r) {
         super(x, y);
         setRadius(r);
-    }
-
-    public float getRadius() {
-        return radius;
-    }
-
-    public void setRadius(float radius) {
-        this.radius = radius;
     }
 
     public double getInfluence(float x, float y) {
@@ -36,7 +26,7 @@ public class Planet extends StellarObject {
         Paint p = new Paint();
         p.setColor(Color.GREEN);
 
-        canvas.drawCircle(getX(), getY(), radius, p);
+        canvas.drawCircle(xPos, yPos, radius, p);
     }
 
 

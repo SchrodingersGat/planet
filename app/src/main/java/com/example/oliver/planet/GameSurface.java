@@ -22,6 +22,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private GameThread gameThread;
     public GameLevel level;
 
+    private StellarObject stellarObjectBeingDragged;
+
     public GameSurface(Context context) {
         super(context);
 
@@ -37,17 +39,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         level.planets.add(p);
 
         p = new Planet(100, 25, 15);
-        //level.planets.add(p);
+        level.planets.add(p);
 
         p = new Planet(200, 500, 45);
-        //level.planets.add(p);
+        level.planets.add(p);
         Star s;
 
         s = new Star(0, 0);
-        //level.stars.add(s);
+        level.stars.add(s);
 
         s = new Star(250, -50);
-        //level.stars.add(s);
+        level.stars.add(s);
 
         level.ship.setPos(25,100);
     }
@@ -119,11 +121,30 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = event.getX() - this.getWidth() / 2;
         float y = event.getY() - this.getHeight() / 2;
 
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-            level.ship.reset();
-            level.ship.setPos(x,y);
-        }
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                /* Test for item being clicked */
+                stellarObjectBeingDragged = level.testStellarObjectHit(x, y);
 
+                if (stellarObjectBeingDragged == null) {
+                    level.ship.reset();
+                    level.ship.setPos(x,y);
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (stellarObjectBeingDragged != null) {
+                    stellarObjectBeingDragged.setPos(x, y);
+                }
+                break;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_OUTSIDE:
+                stellarObjectBeingDragged = null;
+                break;
+            default:
+                break;
+        }
         return true;
     }
 }

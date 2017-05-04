@@ -10,12 +10,20 @@ import android.graphics.Canvas;
 
 public class Star extends StellarObject {
 
+    private final float starRadius = 25;
+
     public Star() {
         super();
+        init();
     }
 
     public Star(float x, float y) {
         super(x, y);
+        init();
+    }
+
+    private void init() {
+        setRadius(starRadius);
     }
 
     public void draw(Canvas canvas) {

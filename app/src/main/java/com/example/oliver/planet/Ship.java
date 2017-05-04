@@ -9,7 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Canvas;
 
-public class Ship extends StellarObject {
+public class Ship extends GameObject {
 
     private float angle;
 
