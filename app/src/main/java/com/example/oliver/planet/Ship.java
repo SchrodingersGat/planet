@@ -87,7 +87,7 @@ public class Ship extends GameObject {
     }
 
     public void applyPlanetForce(Planet planet) {
-        double force = planet.getInfluence(getX(), getY());
+        double force = planet.getForce(getX(), getY());
 
         double a = this.angleTo(planet);
 

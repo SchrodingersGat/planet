@@ -39,9 +39,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         level.planets.add(p);
 
         p = new Planet(100, 25, 15);
+        p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
         level.planets.add(p);
 
         p = new Planet(200, 500, 45);
+        p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
         Star s;
 

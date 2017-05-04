@@ -10,7 +10,7 @@ import android.graphics.Canvas;
 
 public class Star extends StellarObject {
 
-    private final float starRadius = 25;
+    private final float starRadius = 35;
 
     private boolean collected;
 
@@ -36,7 +36,7 @@ public class Star extends StellarObject {
     public void draw(Canvas canvas) {
         Paint p = new Paint();
 
-        p.setColor(Color.YELLOW);
+        p.setColor(Color.CYAN);
 
         if (collected) {
             p.setAlpha(100);
