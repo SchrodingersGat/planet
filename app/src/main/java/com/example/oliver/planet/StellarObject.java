@@ -38,6 +38,11 @@ public class StellarObject {
         yPos = y;
     }
 
+    public void setPos(float x, float y) {
+        xPos = x;
+        yPos = y;
+    }
+
     public float distanceSquared(float x, float y) {
         float dx = x - xPos;
         float dy = y - yPos;
@@ -59,14 +64,14 @@ public class StellarObject {
         return distanceTo(object.getX(), object.getY());
     }
 
-    public float angleTo(float x, float y) {
+    public double angleTo(float x, float y) {
         float dx = x - xPos;
         float dy = y - yPos;
 
-        return (float) Math.atan2(y, x);
+        return Math.atan2(dy, dx);
     }
 
-    public float angleTo(StellarObject object) {
+    public double angleTo(StellarObject object) {
         return angleTo(object.getX(), object.getY());
     }
 }

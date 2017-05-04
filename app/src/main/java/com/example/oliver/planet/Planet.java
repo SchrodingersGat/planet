@@ -12,6 +12,9 @@ public class Planet extends StellarObject {
 
     private float radius;
 
+    // Acceleration constant
+    private final float G = 12.0f;
+
     public Planet(float x, float y, float r) {
         super(x, y);
         setRadius(r);
@@ -26,7 +29,7 @@ public class Planet extends StellarObject {
     }
 
     public double getInfluence(float x, float y) {
-        return radius / distanceSquared(x, y);
+        return G * radius * radius / distanceSquared(x, y);
     }
 
     public void draw(Canvas canvas) {
@@ -35,4 +38,6 @@ public class Planet extends StellarObject {
 
         canvas.drawCircle(getX(), getY(), radius, p);
     }
+
+
 }

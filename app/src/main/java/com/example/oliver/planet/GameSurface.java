@@ -1,5 +1,6 @@
 package com.example.oliver.planet;
 
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.view.SurfaceHolder;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.view.MotionEvent;
 
 import java.util.Vector;
 
@@ -18,14 +20,7 @@ import java.util.Vector;
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private GameThread gameThread;
-
-    int wScreen = 0;
-    int hScreen = 0;
-
-    float x = 0;
-    float y = 0;
-
-    Vector<Planet> planets;
+    public GameLevel level;
 
     public GameSurface(Context context) {
         super(context);
@@ -34,22 +29,33 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         this.getHolder().addCallback(this);
 
+        level = new GameLevel();
+
         Planet p;
 
-        planets = new Vector<Planet>();
-
-        p = new Planet(-50, -50, 50);
-        planets.add(p);
+        p = new Planet(-250, -50, 50);
+        level.planets.add(p);
 
         p = new Planet(100, 25, 15);
-        planets.add(p);
+        //level.planets.add(p);
 
         p = new Planet(200, 500, 45);
-        planets.add(p);
+        //level.planets.add(p);
+        Star s;
+
+        s = new Star(0, 0);
+        //level.stars.add(s);
+
+        s = new Star(250, -50);
+        //level.stars.add(s);
+
+        level.ship.setPos(25,100);
     }
 
     public void update() {
 
+        // Update game mechanics
+        level.update();
     }
 
     @Override
@@ -63,10 +69,18 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         canvas.drawColor(Color.BLACK);
 
-        for( int i=0; i<planets.size(); i++ )
-        {
-            planets.get(i).draw(canvas);
+        // Draw each planet
+        for (int ii=0; ii<level.planets.size(); ii++) {
+            level.planets.get(ii).draw(canvas);
         }
+
+        // Draw each star
+        for (int jj=0; jj<level.stars.size(); jj++) {
+            level.stars.get(jj).draw(canvas);
+        }
+
+        // Draw the ship
+        level.ship.draw(canvas);
     }
 
     @Override
@@ -78,8 +92,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        wScreen = w;
-        hScreen = h;
     }
 
     @Override
@@ -98,5 +110,20 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             }
             retry= true;
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        // Get the position of the ship in world coordinates
+        float x = event.getX() - this.getWidth() / 2;
+        float y = event.getY() - this.getHeight() / 2;
+
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            level.ship.reset();
+            level.ship.setPos(x,y);
+        }
+
+        return true;
     }
 }
