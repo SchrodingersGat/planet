@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Canvas;
+import android.graphics.PointF;
+import java.util.Vector;
 
 public class Ship extends GameObject {
 
@@ -34,24 +36,36 @@ public class Ship extends GameObject {
     private double aSpeed;
     private double aAcc;
 
+    // Breadcrumbs
+    private Vector<PointF> breadcrumbs;
+    private boolean useBreadcrumbs = true;
+    private int maxBreadcrumbs = 100;
+
     public Ship() {
         super();
 
         angle = 0;
 
-        reset();
+        init();
     }
 
     public Ship(float x, float y, float a) {
         super(x,y);
         angle = a;
 
-        reset();
+        init();
     }
 
     public boolean hasCrashed() { return crashed; }
 
     public void setCrashed(boolean state) { crashed = state; }
+
+    private void init() {
+
+        breadcrumbs = new Vector<PointF>();
+
+        reset();
+    }
 
     public void reset() {
         xSpeed = 0;
@@ -65,6 +79,8 @@ public class Ship extends GameObject {
         angle = 0;
 
         crashed = false;
+
+        breadcrumbs.clear();
     }
 
     public void resetAcceleration() {
@@ -148,10 +164,45 @@ public class Ship extends GameObject {
         angle = Math.min(-Math.PI, angle);
         angle = Math.max( Math.PI, angle);
         */
+
+        dropBreadcrumb();
+    }
+
+    public void dropBreadcrumb() {
+
+        if (!useBreadcrumbs) { return; }
+
+        while (breadcrumbs.size() > maxBreadcrumbs) {
+            breadcrumbs.remove(0);
+        }
+
+        if (breadcrumbs.size() == 0) {
+            breadcrumbs.add(new PointF(xPos, yPos));
+        }
+        else {
+            PointF crumb = breadcrumbs.lastElement();
+
+            if (distanceTo(crumb.x, crumb.y) > 25) {
+                breadcrumbs.add(new PointF(xPos, yPos));
+            }
+        }
     }
 
     public void draw(Canvas canvas) {
         canvas.save();
+
+        Paint crumbPaint = new Paint();
+        crumbPaint.setColor(Color.RED);
+        PointF crumb;
+
+        // Draw breadcrumbs
+        if (useBreadcrumbs) {
+            for (int i=0; i<breadcrumbs.size(); i++) {
+                crumb = breadcrumbs.get(i);
+
+                canvas.drawCircle(crumb.x, crumb.y, 3, crumbPaint);
+            }
+        }
 
         canvas.translate(getX(), getY());
         canvas.rotate((float) (angle * 180 / Math.PI) + 90);
