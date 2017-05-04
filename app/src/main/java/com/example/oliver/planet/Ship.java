@@ -11,11 +11,14 @@ import android.graphics.Canvas;
 
 public class Ship extends GameObject {
 
-    private float angle;
+    private double angle;
 
     // Ship attributes
-    final private float maxSpeed = 25;
-    final private float maxSpeedSquared = maxSpeed * maxSpeed;
+    final private double maxSpeed = 12.5;
+    final private double maxSpeedSquared = maxSpeed * maxSpeed;
+
+    final private double maxAngularSpeed = 0.125;
+    final private double autoRotateSpeed = 2.05;
 
     // Ship speed
     private double xSpeed;
@@ -24,6 +27,10 @@ public class Ship extends GameObject {
     // Ship acceleration
     private double xAcc;
     private double yAcc;
+
+    // Ship angular speed and acceleration
+    private double aSpeed;
+    private double aAcc;
 
     public Ship() {
         super();
@@ -43,8 +50,13 @@ public class Ship extends GameObject {
     public void reset() {
         xSpeed = 0;
         ySpeed = 0;
+        aSpeed = 0;
+
         xAcc = 0;
         yAcc = 0;
+        yAcc = 0;
+
+        angle = 0;
     }
 
     public void resetAcceleration() {
@@ -52,9 +64,18 @@ public class Ship extends GameObject {
         yAcc = 0;
     }
 
+    public void resetAngularAcceleration() {
+        aAcc = 0;
+    }
+
     public void accelerate(double ax, double ay) {
         xAcc += ax;
         yAcc += ay;
+    }
+
+    public void resetBeforeUpdate() {
+        resetAcceleration();
+        resetAngularAcceleration();
     }
 
     public void applyPlanetForce(Planet planet) {
@@ -68,9 +89,18 @@ public class Ship extends GameObject {
         accelerate(ax, ay);
     }
 
+    // Rotate the ship towards the direction it is moving
+    public void autoRotate() {
+        double aMove = Math.atan2(ySpeed, xSpeed);
+
+        angle = aMove;
+
+        // TODO
+    }
+
     public void move() {
 
-        // Apply acceleration
+        // Apply linear acceleration
         xSpeed += xAcc;
         ySpeed += yAcc;
 
@@ -85,13 +115,38 @@ public class Ship extends GameObject {
         }
 
         setPos(getX() + (float) xSpeed, getY() + (float) ySpeed);
+
+        // Point nose of ship in the direction it is moving
+        autoRotate();
+
+        /*
+        // Apply angular acceleration
+        aSpeed += aAcc;
+
+        // Clip angular speed
+        if (Math.abs(aSpeed) > maxAngularSpeed) {
+
+            if (aSpeed < 0) {
+                aSpeed = -maxAngularSpeed;
+            }
+            else
+            {
+                aSpeed = maxAngularSpeed;
+            }
+        }
+
+        angle += aSpeed;
+
+        angle = Math.min(-Math.PI, angle);
+        angle = Math.max( Math.PI, angle);
+        */
     }
 
     public void draw(Canvas canvas) {
         canvas.save();
 
         canvas.translate(getX(), getY());
-        canvas.rotate(angle);
+        canvas.rotate((float) (angle * 180 / Math.PI) + 90);
 
         Paint p = new Paint();
         p.setColor(Color.RED);

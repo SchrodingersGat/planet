@@ -24,7 +24,7 @@ public class GameLevel {
     public void update() {
 
         // Reset ship acceleration
-        ship.resetAcceleration();
+        ship.resetBeforeUpdate();
 
         // Accelerate ship towards each planet
         for (int ii = 0; ii < planets.size(); ii++) {
