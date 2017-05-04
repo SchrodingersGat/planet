@@ -11,6 +11,8 @@ import android.graphics.Canvas;
 
 public class Ship extends GameObject {
 
+    private boolean crashed;
+
     private double angle;
 
     // Ship attributes
@@ -47,6 +49,10 @@ public class Ship extends GameObject {
         reset();
     }
 
+    public boolean hasCrashed() { return crashed; }
+
+    public void setCrashed(boolean state) { crashed = state; }
+
     public void reset() {
         xSpeed = 0;
         ySpeed = 0;
@@ -57,6 +63,8 @@ public class Ship extends GameObject {
         yAcc = 0;
 
         angle = 0;
+
+        crashed = false;
     }
 
     public void resetAcceleration() {

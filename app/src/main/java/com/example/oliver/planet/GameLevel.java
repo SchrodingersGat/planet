@@ -21,6 +21,18 @@ public class GameLevel {
         ship = new Ship();
     }
 
+    /*
+    Reset the level to default conditions
+     */
+    public void reset() {
+
+        ship.reset();
+
+        for (int i=0; i<stars.size(); i++) {
+            stars.get(i).setCollected(false);
+        }
+    }
+
     public void update() {
 
         // Reset ship acceleration
@@ -28,11 +40,36 @@ public class GameLevel {
 
         // Accelerate ship towards each planet
         for (int ii = 0; ii < planets.size(); ii++) {
+
+            Planet planet = planets.get(ii);
+
+            if (planet.containsPoint(ship.getX(), ship.getY())) {
+                ship.setCrashed(true);
+                break;
+            }
+
             ship.applyPlanetForce(planets.get(ii));
         }
 
-        // Update ship position
-        ship.move();
+        if (!ship.hasCrashed()) {
+
+            // Test each star for hit
+            for (int jj=0; jj<stars.size(); jj++)
+            {
+                Star star = stars.get(jj);
+
+                if (star.isCollected()) {
+                    continue;
+                }
+
+                if (star.containsPoint(ship.getX(), ship.getY())) {
+                    star.setCollected(true);
+                }
+            }
+
+            // Update ship position
+            ship.move();
+        }
 
     }
 
