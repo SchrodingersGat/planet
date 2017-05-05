@@ -13,6 +13,8 @@ import java.util.Vector;
 
 public class Ship extends GameObject {
 
+    static final float SHIP_RADIUS = 35;
+
     private boolean crashed;
 
     private double angle;
@@ -39,7 +41,7 @@ public class Ship extends GameObject {
     // Breadcrumbs
     private Vector<PointF> breadcrumbs;
     private boolean useBreadcrumbs = true;
-    private int maxBreadcrumbs = 100;
+    private int maxBreadcrumbs = 500;
 
     public Ship() {
         super();
@@ -188,8 +190,7 @@ public class Ship extends GameObject {
         }
     }
 
-    public void draw(Canvas canvas) {
-        canvas.save();
+    public void drawBreadcrumbs(Canvas canvas) {
 
         Paint crumbPaint = new Paint();
         crumbPaint.setColor(Color.RED);
@@ -203,6 +204,10 @@ public class Ship extends GameObject {
                 canvas.drawCircle(crumb.x, crumb.y, 3, crumbPaint);
             }
         }
+    }
+
+    public void draw(Canvas canvas) {
+        canvas.save();
 
         canvas.translate(getX(), getY());
         canvas.rotate((float) (angle * 180 / Math.PI) + 90);
