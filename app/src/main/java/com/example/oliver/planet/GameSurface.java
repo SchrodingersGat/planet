@@ -70,21 +70,21 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(-250, -50, 50);
         level.planets.add(p);
 
-        p = new Planet(100, 25, 15);
+        p = new Planet(100, 25, 35);
         p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
         level.planets.add(p);
 
-        p = new Planet(200, 500, 45);
+        p = new Planet(800, 500, 65);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
-        p = new Planet(-200, 500, 45);
+        p = new Planet(-200, 750, 95);
         p.setPlanetType(Planet.PlanetType.SUN);
         level.planets.add(p);
 
         Star s;
 
-        s = new Star(0, 0);
+        s = new Star(600, 0);
         level.stars.add(s);
 
         s = new Star(250, -50);
@@ -134,11 +134,49 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
+    /*
+    Draw a grid overlay on the screen
+    The grid is in 'world' coordinates
+    (moves with the screen)
+     */
+    public void drawGrid(Canvas canvas) {
+
+        final float GRID = 100;
+
+        // Calculate grid offset
+        PointF loc = getMapCoordsFromScreenPos(0, 0);
+
+        loc.x -= GRID * (int) (loc.x / GRID);
+        loc.y -= GRID * (int) (loc.y / GRID);
+
+        int nx = (int) (WIDTH / GRID + 0.5);
+        int ny = (int) (HEIGHT / GRID + 0.5);
+
+        Paint gp = new Paint();
+        gp.setARGB(50, 100, 200, 225);
+        gp.setStrokeWidth(3.5f);
+
+        float x, y;
+
+        for (int i=-1; i<=nx; i++) {
+            x = i * GRID - loc.x;
+            canvas.drawLine(x, 0, x, HEIGHT, gp);
+        }
+
+        for (int j=-1; j<=ny; j++) {
+            y = j * GRID - loc.y;
+            canvas.drawLine(0, y, WIDTH, y, gp);
+        }
+    }
+
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
 
         arrows.clear();
+
+        canvas.drawColor(Color.BLACK);
+        drawGrid(canvas);
 
         canvas.save();
 
@@ -146,8 +184,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         canvas.translate(mapOffset.x, mapOffset.y);
 
         canvas.translate(-level.ship.xPos, -level.ship.yPos);
-
-        canvas.drawColor(Color.BLACK);
 
         Paint L = new Paint();
         L.setColor(Color.RED);
