@@ -100,11 +100,11 @@ public class Planet extends StellarObject {
 
         if (atmosphere > 0) {
             p.setAlpha(25);
-            canvas.drawCircle(xPos, yPos, radius + atmosphere, p);
+            canvas.drawCircle(pos.x, pos.y, radius + atmosphere, p);
         }
 
         p.setAlpha(255);
-        canvas.drawCircle(xPos, yPos, radius, p);
+        canvas.drawCircle(pos.x, pos.y, radius, p);
 
     }
 

@@ -4,8 +4,7 @@ package com.example.oliver.planet;
  * Created by Oliver on 5/3/2017.
  */
 
-import java.lang.Math;
-import android.graphics.Canvas;
+import android.graphics.PointF;
 
 public class StellarObject extends GameObject {
 
@@ -30,5 +29,9 @@ public class StellarObject extends GameObject {
 
     public boolean containsPoint(float x, float y) {
         return distanceSquared(x,y) < (radius * radius);
+    }
+
+    public boolean containsPoint(PointF point) {
+        return containsPoint(point.x, point.y);
     }
 }

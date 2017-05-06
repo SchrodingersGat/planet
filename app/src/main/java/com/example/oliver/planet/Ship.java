@@ -40,7 +40,7 @@ public class Ship extends GameObject {
     private float thrust = 0.5f;
     static final float MAX_THRUST = 1.25f;
     private final float THRUST_INCREMENT = MAX_THRUST / 25;
-    static final int MAX_FUEL = 250;
+    static final int MAX_FUEL = 100;
 
     // Breadcrumbs
     private Vector<PointF> breadcrumbs = new Vector<PointF>();
@@ -53,6 +53,15 @@ public class Ship extends GameObject {
         angle = 0;
 
         reset();
+    }
+
+    public float getFuelRatio() {
+        float ratio = (float) fuel / MAX_FUEL;
+
+        if (ratio < 0) { ratio = 0; }
+        if (ratio > 1) { ratio = 1; }
+
+        return ratio;
     }
 
     public double getSpeed() {
@@ -180,12 +189,12 @@ public class Ship extends GameObject {
 
             Planet planet = planets.get(i);
 
-            if (planet.containsPoint(xPos, yPos)) {
+            if (planet.containsPoint(pos)) {
                 setCrashed(true);
                 break;
             }
 
-            force = planet.getForce(xPos, yPos);
+            force = planet.getForce(pos.x, pos.y);
             af = angleTo(planet);
 
             ax = force * Math.cos(af);
@@ -193,7 +202,7 @@ public class Ship extends GameObject {
 
             accelerate(ax, ay);
 
-            if (planet.pointWithinAtmosphere(xPos, yPos)) {
+            if (planet.pointWithinAtmosphere(pos.x, pos.y)) {
                 hitAtmosphere = planet;
             }
         }
@@ -276,13 +285,13 @@ public class Ship extends GameObject {
         }
 
         if (breadcrumbs.size() == 0) {
-            breadcrumbs.add(new PointF(xPos, yPos));
+            breadcrumbs.add(new PointF(pos.x, pos.y));
         }
         else {
             PointF crumb = breadcrumbs.lastElement();
 
             if (distanceSquared(crumb.x, crumb.y) > 1000) {
-                breadcrumbs.add(new PointF(xPos, yPos));
+                breadcrumbs.add(new PointF(pos.x, pos.y));
             }
         }
     }

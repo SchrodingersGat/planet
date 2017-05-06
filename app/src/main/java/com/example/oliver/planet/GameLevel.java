@@ -4,7 +4,7 @@ package com.example.oliver.planet;
  * Created by Oliver on 5/4/2017.
  */
 
-import android.graphics.Canvas;
+import android.graphics.PointF;
 import java.util.Vector;
 
 public class GameLevel {
@@ -13,6 +13,8 @@ public class GameLevel {
     public Vector<Star> stars;
 
     public Ship ship;
+
+    public PointF shipStartingPosition = new PointF(0, 0);
 
     public GameLevel() {
         planets = new Vector<Planet>();
@@ -27,6 +29,7 @@ public class GameLevel {
     public void reset() {
 
         ship.reset();
+        ship.setPos(shipStartingPosition);
 
         for (int i=0; i<stars.size(); i++) {
             stars.get(i).setCollected(false);

@@ -171,6 +171,36 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
+    public void drawFuelBar(Canvas canvas) {
+
+        Paint fbp = new Paint();
+
+        float BAR_H = 25;
+        float BAR_W = 250;
+        float BAR_O = 15;
+
+        // Fuel ratio
+        float FR =  level.ship.getFuelRatio();
+
+        fbp.setARGB(150, (int) (255 * (1-FR)), (int) (255 * (FR)), 0);
+
+        fbp.setStyle(Paint.Style.FILL);
+
+        canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W * FR, BAR_O + BAR_H, fbp);
+
+        // Draw remaining portion of fuel bar as black
+        fbp.setARGB(150, 0, 0, 0);
+
+        canvas.drawRect(BAR_O + BAR_W * FR, BAR_O, BAR_O + BAR_W, BAR_O + BAR_H, fbp);
+
+        fbp.setColor(Color.GREEN);
+        fbp.setStrokeWidth(5);
+        fbp.setStyle(Paint.Style.STROKE);
+
+        // Draw outline of fuel bar
+        canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W, BAR_O + BAR_H, fbp);
+    }
+
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
@@ -182,13 +212,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         canvas.save();
 
+        Paint L = new Paint();
+        L.setColor(Color.RED);
+
         canvas.translate(WIDTH/2, HEIGHT/2);
         canvas.translate(mapOffset.x, mapOffset.y);
 
-        canvas.translate(-level.ship.xPos, -level.ship.yPos);
-
-        Paint L = new Paint();
-        L.setColor(Color.RED);
+        canvas.translate(-level.ship.pos.x, -level.ship.pos.y);
 
         // Draw each planet
         for (int ii=0; ii<level.planets.size(); ii++) {
@@ -242,14 +272,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         drawArrows(canvas);
 
-        L.setColor(Color.GREEN);
-
-        String s;
-
-        s = "Fuel: " + String.valueOf(level.ship.fuel);
-
-        L.setTextSize(25);
-        canvas.drawText(s, 0, 50, L);
+        drawFuelBar(canvas);
     }
 
     private void drawArrows(Canvas canvas) {
@@ -399,8 +422,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         x -= mapOffset.x;
         y -= mapOffset.y;
 
-        x += level.ship.xPos;
-        y += level.ship.yPos;
+        x += level.ship.pos.x;
+        y += level.ship.pos.y;
 
         return new PointF(x, y);
     }
@@ -410,8 +433,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = xMap + mapOffset.x;
         float y = yMap + mapOffset.y;
 
-        x -= level.ship.xPos;
-        y -= level.ship.yPos;
+        x -= level.ship.pos.x;
+        y -= level.ship.pos.y;
 
         x += WIDTH / 2;
         y += HEIGHT / 2;
@@ -479,7 +502,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     !mapBeingDragged &&
                     !shipBeingDragged) {
                     level.reset();
-                    level.ship.setPos(worldPos.x, worldPos.y);
                     resetMapOffset();
                 }
 

@@ -5,46 +5,49 @@ package com.example.oliver.planet;
  */
 
 import java.lang.Math;
+import android.graphics.PointF;
 
 public class GameObject {
 
-    protected float xPos;
-    protected float yPos;
+    protected PointF pos = new PointF(0, 0);
 
     public GameObject() {
-        xPos = 0;
-        yPos = 0;
+        setPos(0, 0);
     }
 
     public GameObject(float x, float y) {
-        xPos = x;
-        yPos = y;
+        setPos(x, y);
     }
 
-    public float getX() {
-        return xPos;
+    public GameObject(PointF p) {
+        pos = p;
     }
 
-    public float getY() {
-        return yPos;
-    }
+    public PointF getPos() { return pos; }
+
+    public float getX() { return pos.x; }
+
+    public float getY() { return pos.y; }
 
     public void setX(float x) {
-        xPos = x;
+        pos.x = x;
     }
 
     public void setY(float y) {
-        yPos = y;
+        pos.y = y;
     }
 
     public void setPos(float x, float y) {
-        xPos = x;
-        yPos = y;
+        pos.set(x,y);
+    }
+
+    public void setPos(PointF p) {
+        pos = p;
     }
 
     public float distanceSquared(float x, float y) {
-        float dx = x - xPos;
-        float dy = y - yPos;
+        float dx = x - pos.x;
+        float dy = y - pos.y;
 
         return dx*dx + dy*dy;
     }
@@ -64,8 +67,8 @@ public class GameObject {
     }
 
     public double angleTo(float x, float y) {
-        float dx = x - xPos;
-        float dy = y - yPos;
+        float dx = x - pos.x;
+        float dy = y - pos.y;
 
         return Math.atan2(dy, dx);
     }
