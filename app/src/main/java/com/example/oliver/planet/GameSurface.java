@@ -431,6 +431,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 touchFirst.set(x, y);
 
+                if (level.ship.isReleased() && !level.ship.hasCrashed()) {
+                    if (level.ship.distanceTo(worldPos.x, worldPos.y) < 5 * Ship.SHIP_RADIUS) {
+                        level.ship.turnEngineOn();
+                        break;
+                    }
+                }
+
                 /* Test for item being clicked */
                 stellarObjectBeingDragged = level.testStellarObjectHit(worldPos.x, worldPos.y);
 
@@ -460,6 +467,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 break;
 
             case MotionEvent.ACTION_UP:
+
+                if (level.ship.isEngineOn()) {
+                    level.ship.turnEngineOff();
+                    break;
+                }
 
                 if (stellarObjectBeingDragged == null &&
                     !mapBeingDragged &&

@@ -21,19 +21,15 @@ public class Ship extends GameObject {
     private double angle;
 
     // Ship attributes
-    static final double MAX_SPEED = 25;
-    final private double maxSpeedSquared = MAX_SPEED * MAX_SPEED;
+    static final float MAX_SPEED = 25;
+    final private float maxSpeedSquared = MAX_SPEED * MAX_SPEED;
 
-    final private double maxAngularSpeed = 0.125;
-    final private double autoRotateSpeed = 2.05;
+    final private float maxAngularSpeed = 0.125f;
+    final private float autoRotateSpeed = 2.05f;
 
     // Ship speed
-    private double xSpeed;
-    private double ySpeed;
-
-    // Ship acceleration
-    private double xAcc;
-    private double yAcc;
+    private PointF speed = new PointF(0, 0);
+    private PointF acceleration = new PointF(0, 0);
 
     // Ship angular speed and acceleration
     private double aSpeed;
@@ -41,10 +37,14 @@ public class Ship extends GameObject {
 
     public int fuel = 0;
     public boolean engineOn = false;
-    public final float THRUST = 0.5f;
+    private float thrust = 0.5f;
+    static final float MAX_THRUST = 2.5f;
+    private final float THRUST_INCREMENT = MAX_THRUST / 25;
+    static final int MAX_FUEL = 250;
+
 
     // Breadcrumbs
-    private Vector<PointF> breadcrumbs;
+    private Vector<PointF> breadcrumbs = new Vector<PointF>();
     private boolean useBreadcrumbs = true;
     private int maxBreadcrumbs = 500;
 
@@ -53,8 +53,10 @@ public class Ship extends GameObject {
 
         angle = 0;
 
-        init();
+        reset();
     }
+
+    public boolean isEngineOn() { return engineOn; }
 
     public void turnEngineOn() {
         engineOn = true;
@@ -68,9 +70,14 @@ public class Ship extends GameObject {
         super(x,y);
         angle = a;
 
-        init();
+        reset();
     }
 
+    /**
+     * Force-set the angle of the ship
+     * e.g. when updating launching angle
+     * @param angle - ship angle in radians
+     */
     public void setAngle(double angle) {
         if (!released && !crashed) {
             this.angle = angle;
@@ -82,6 +89,10 @@ public class Ship extends GameObject {
 
     public boolean isReleased() { return released; }
 
+    /**
+     * Release ship into the world
+     * @param vector - Starting speed vector, from ship location
+     */
     public void release(PointF vector) {
 
         if (released) { return; }
@@ -91,7 +102,7 @@ public class Ship extends GameObject {
         float x = vector.x;
         float y = vector.y;
 
-        double a = Math.atan2(y, x);
+        angle = Math.atan2(y, x);
 
         float d = distanceTo(x, y);
 
@@ -105,27 +116,20 @@ public class Ship extends GameObject {
             d = (float) MAX_SPEED;
         }
 
-        xSpeed = d * (float) Math.cos(a);
-        ySpeed = d * (float) Math.sin(a);
+        speed.x = d * (float) Math.cos(angle);
+        speed.y = d * (float) Math.sin(angle);
 
         released = true;
     }
 
-    private void init() {
 
-        breadcrumbs = new Vector<PointF>();
-
-        reset();
-    }
-
+    /**
+     * Reset ship to defaults
+     */
     public void reset() {
-        xSpeed = 0;
-        ySpeed = 0;
+        speed.set(0, 0);
+        acceleration.set(0, 0);
         aSpeed = 0;
-
-        xAcc = 0;
-        yAcc = 0;
-        yAcc = 0;
 
         angle = 0;
 
@@ -136,24 +140,35 @@ public class Ship extends GameObject {
     }
 
     public void resetAcceleration() {
-        xAcc = 0;
-        yAcc = 0;
+        acceleration.set(0, 0);
     }
 
     public void resetAngularAcceleration() {
         aAcc = 0;
     }
 
+    /**
+     * Apply acceleration vector
+     * @param ax - acceleration in x axis
+     * @param ay - acceleration in y axis
+     */
     public void accelerate(double ax, double ay) {
-        xAcc += ax;
-        yAcc += ay;
+        acceleration.x += ax;
+        acceleration.y += ay;
     }
 
+    /**
+     * Reset acceleration vectors before updating ship mechanics
+     */
     public void resetBeforeUpdate() {
         resetAcceleration();
         resetAngularAcceleration();
     }
 
+    /**
+     * Apply acceleration force from provided planet
+     * @param planet
+     */
     public void applyPlanetForce(Planet planet) {
         double force = planet.getForce(getX(), getY());
 
@@ -165,72 +180,69 @@ public class Ship extends GameObject {
         accelerate(ax, ay);
     }
 
-    // Rotate the ship towards the direction it is moving
+    /**
+     * Rotate the ship towards its direction heading
+     */
     public void autoRotate() {
-        double aMove = Math.atan2(ySpeed, xSpeed);
+        double aMove = Math.atan2(speed.y, speed.x);
 
+        // TODO - Perhaps more complex behavoir here...
         angle = aMove;
+    }
 
-        // TODO
+    /**
+    Apply linear thrust if the engine is on
+     */
+    public void applyThrust() {
+
+        if (!engineOn || fuel == 0) {
+            thrust = 0;
+            return;
+        }
+
+        if (thrust < MAX_THRUST) {
+            thrust += THRUST_INCREMENT;
+        }
+
+        if (thrust > MAX_THRUST) {
+            thrust = MAX_THRUST;
+        }
+
+        fuel--;
+
+        acceleration.x += thrust * (float) Math.cos(angle);
+        acceleration.y += thrust * (float) Math.sin(angle);
     }
 
     public void move() {
 
-        //TODO - remove this
-        engineOn = true;
-
-        // Apply thrust if engine on
-        if (engineOn && fuel > 0) {
-            fuel--;
-
-            xAcc += THRUST * (float) Math.cos(angle);
-            yAcc += THRUST * (float) Math.sin(angle);
-        }
+        applyThrust();
 
         // Apply linear acceleration
-        xSpeed += xAcc;
-        ySpeed += yAcc;
+        speed.x += acceleration.x;
+        speed.y += acceleration.y;
 
-        double ss = xSpeed * xSpeed + ySpeed * ySpeed;
+        double ss = (speed.x * speed.x) + (speed.y * speed.y);
 
         // Test if the speed needs to be clipped
         if (ss > maxSpeedSquared) {
-            double sAngle = Math.atan2(ySpeed, xSpeed);
+            double sAngle = Math.atan2(speed.y, speed.x);
 
-            xSpeed = MAX_SPEED * Math.cos(sAngle);
-            ySpeed = MAX_SPEED * Math.sin(sAngle);
+            speed.x = MAX_SPEED * (float) Math.cos(sAngle);
+            speed.y = MAX_SPEED * (float) Math.sin(sAngle);
         }
 
-        setPos(getX() + (float) xSpeed, getY() + (float) ySpeed);
+        setPos(getX() + speed.x, getY() + (float) speed.y);
 
         // Point nose of ship in the direction it is moving
         autoRotate();
 
-        /*
-        // Apply angular acceleration
-        aSpeed += aAcc;
-
-        // Clip angular speed
-        if (Math.abs(aSpeed) > maxAngularSpeed) {
-
-            if (aSpeed < 0) {
-                aSpeed = -maxAngularSpeed;
-            }
-            else
-            {
-                aSpeed = maxAngularSpeed;
-            }
-        }
-
-        angle += aSpeed;
-
-        angle = Math.min(-Math.PI, angle);
-        angle = Math.max( Math.PI, angle);
-        */
-
         dropBreadcrumb();
     }
 
+    /**
+     * Leave a single breadcrumb on the map
+     */
     public void dropBreadcrumb() {
 
         if (!useBreadcrumbs) { return; }
@@ -245,16 +257,21 @@ public class Ship extends GameObject {
         else {
             PointF crumb = breadcrumbs.lastElement();
 
-            if (distanceTo(crumb.x, crumb.y) > 25) {
+            if (distanceSquared(crumb.x, crumb.y) > 1000) {
                 breadcrumbs.add(new PointF(xPos, yPos));
             }
         }
     }
 
+    /**
+     * Draw the breadcrumbs on the canvas
+     * @param canvas
+     */
     public void drawBreadcrumbs(Canvas canvas) {
 
         Paint crumbPaint = new Paint();
         crumbPaint.setColor(Color.RED);
+        crumbPaint.setStrokeWidth(5);
         PointF crumb;
 
         // Draw breadcrumbs
@@ -262,11 +279,16 @@ public class Ship extends GameObject {
             for (int i=0; i<breadcrumbs.size(); i++) {
                 crumb = breadcrumbs.get(i);
 
-                canvas.drawCircle(crumb.x, crumb.y, 3, crumbPaint);
+                canvas.drawPoint(crumb.x, crumb.y, crumbPaint);
+                //canvas.drawCircle(crumb.x, crumb.y, 3, crumbPaint);
             }
         }
     }
 
+    /**
+     * Draw the ship on the supplied canvas
+     * @param canvas
+     */
     public void draw(Canvas canvas) {
         canvas.save();
 
@@ -280,13 +302,16 @@ public class Ship extends GameObject {
         float W = 15;
         float H = 65;
 
+        // Thrust size
+        float T = 5 * W * thrust / MAX_THRUST;
+
         if (!crashed && released && engineOn && fuel > 0) {
             p.setColor(Color.argb(150, 240, 200, 85));
             path.reset();
-            path.moveTo(-W, 5 * W);
-            path.lineTo( W, 5 * W);
+            path.moveTo(-W, T);
+            path.lineTo( W, T);
             path.lineTo( 0, 0);
-            path.lineTo(-W, 5 * W);
+            path.lineTo(-W, T);
 
             canvas.drawPath(path, p);
         }

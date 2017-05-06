@@ -32,7 +32,7 @@ public class GameLevel {
             stars.get(i).setCollected(false);
         }
 
-        ship.fuel = 100;
+        ship.fuel = Ship.MAX_FUEL;
     }
 
     public void update() {
