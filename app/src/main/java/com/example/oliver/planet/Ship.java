@@ -39,6 +39,10 @@ public class Ship extends GameObject {
     private double aSpeed;
     private double aAcc;
 
+    public int fuel = 0;
+    public boolean engineOn = false;
+    public final float THRUST = 0.5f;
+
     // Breadcrumbs
     private Vector<PointF> breadcrumbs;
     private boolean useBreadcrumbs = true;
@@ -50,6 +54,14 @@ public class Ship extends GameObject {
         angle = 0;
 
         init();
+    }
+
+    public void turnEngineOn() {
+        engineOn = true;
+    }
+
+    public void turnEngineOff() {
+        engineOn = false;
     }
 
     public Ship(float x, float y, float a) {
@@ -96,14 +108,7 @@ public class Ship extends GameObject {
         xSpeed = d * (float) Math.cos(a);
         ySpeed = d * (float) Math.sin(a);
 
-
-        if (!released) {
-            reset();
-            xSpeed = vector.x / 10;
-            ySpeed = vector.y / 10;
-
-            released = true;
-        }
+        released = true;
     }
 
     private void init() {
@@ -170,6 +175,17 @@ public class Ship extends GameObject {
     }
 
     public void move() {
+
+        //TODO - remove this
+        engineOn = true;
+
+        // Apply thrust if engine on
+        if (engineOn && fuel > 0) {
+            fuel--;
+
+            xAcc += THRUST * (float) Math.cos(angle);
+            yAcc += THRUST * (float) Math.sin(angle);
+        }
 
         // Apply linear acceleration
         xSpeed += xAcc;
@@ -258,13 +274,26 @@ public class Ship extends GameObject {
         canvas.rotate((float) (angle * 180 / Math.PI) + 90);
 
         Paint p = new Paint();
-        p.setColor(Color.RED);
 
         Path path = new Path();
 
         float W = 15;
         float H = 65;
 
+        if (!crashed && released && engineOn && fuel > 0) {
+            p.setColor(Color.argb(150, 240, 200, 85));
+            path.reset();
+            path.moveTo(-W, 5 * W);
+            path.lineTo( W, 5 * W);
+            path.lineTo( 0, 0);
+            path.lineTo(-W, 5 * W);
+
+            canvas.drawPath(path, p);
+        }
+
+        p.setColor(Color.RED);
+
+        path.reset();
         path.moveTo(-W, W);
         path.lineTo( W, W);
         path.lineTo( 0, W-H);

@@ -239,6 +239,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         canvas.restore();
 
         drawArrows(canvas);
+
+        L.setColor(Color.GREEN);
+
+        String s;
+
+        s = "Fuel: " + String.valueOf(level.ship.fuel);
+
+        L.setTextSize(25);
+        canvas.drawText(s, 0, 50, L);
     }
 
     private void drawArrows(Canvas canvas) {

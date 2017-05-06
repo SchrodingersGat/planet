@@ -31,6 +31,8 @@ public class GameLevel {
         for (int i=0; i<stars.size(); i++) {
             stars.get(i).setCollected(false);
         }
+
+        ship.fuel = 100;
     }
 
     public void update() {
