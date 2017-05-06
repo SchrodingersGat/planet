@@ -72,6 +72,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         p = new Planet(100, 25, 35);
         p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
+        p.setAtmosphere(50);
         level.planets.add(p);
 
         p = new Planet(800, 500, 65);
@@ -80,6 +81,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         p = new Planet(-200, 750, 95);
         p.setPlanetType(Planet.PlanetType.SUN);
+        p.setAtmosphere(100);
         level.planets.add(p);
 
         Star s;

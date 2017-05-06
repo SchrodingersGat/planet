@@ -38,10 +38,9 @@ public class Ship extends GameObject {
     public int fuel = 0;
     public boolean engineOn = false;
     private float thrust = 0.5f;
-    static final float MAX_THRUST = 2.5f;
+    static final float MAX_THRUST = 1.25f;
     private final float THRUST_INCREMENT = MAX_THRUST / 25;
     static final int MAX_FUEL = 250;
-
 
     // Breadcrumbs
     private Vector<PointF> breadcrumbs = new Vector<PointF>();
@@ -54,6 +53,10 @@ public class Ship extends GameObject {
         angle = 0;
 
         reset();
+    }
+
+    public double getSpeed() {
+        return Math.sqrt(speed.x * speed.x + speed.y * speed.y);
     }
 
     public boolean isEngineOn() { return engineOn; }
@@ -165,19 +168,40 @@ public class Ship extends GameObject {
         resetAngularAcceleration();
     }
 
-    /**
-     * Apply acceleration force from provided planet
-     * @param planet
-     */
-    public void applyPlanetForce(Planet planet) {
-        double force = planet.getForce(getX(), getY());
+    public void updatePlanets(Vector<Planet> planets) {
 
-        double a = this.angleTo(planet);
+        Planet hitAtmosphere = null;
 
-        double ax = force * Math.cos(a);
-        double ay = force * Math.sin(a);
+        double force;
+        double af;
+        double ax, ay;
 
-        accelerate(ax, ay);
+        for (int i=0; i<planets.size(); i++) {
+
+            Planet planet = planets.get(i);
+
+            if (planet.containsPoint(xPos, yPos)) {
+                setCrashed(true);
+                break;
+            }
+
+            force = planet.getForce(xPos, yPos);
+            af = angleTo(planet);
+
+            ax = force * Math.cos(af);
+            ay = force * Math.sin(af);
+
+            accelerate(ax, ay);
+
+            if (planet.pointWithinAtmosphere(xPos, yPos)) {
+                hitAtmosphere = planet;
+            }
+        }
+
+        // Ship is inside atmosphere of a planet
+        if (hitAtmosphere != null) {
+            //TODO
+        }
     }
 
     /**

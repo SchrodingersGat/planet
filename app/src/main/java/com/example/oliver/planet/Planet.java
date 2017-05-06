@@ -19,6 +19,10 @@ public class Planet extends StellarObject {
 
     private PlanetType planetType = PlanetType.PLANET;
 
+    // Atmosphere radius
+    private float atmosphere = 0.0f;
+    static final float MAX_ATMOSPHERE = 250.0f;
+
     // Acceleration constant
     private final float G = 20.0f;
 
@@ -26,6 +30,28 @@ public class Planet extends StellarObject {
         super(x, y);
         setRadius(r);
     }
+
+    public void setAtmosphere(float r) {
+        if (r < 0) {
+            r = 0;
+        }
+
+        if (r > MAX_ATMOSPHERE) {
+            r = MAX_ATMOSPHERE;
+        }
+
+        atmosphere = r;
+    }
+
+    public boolean pointWithinAtmosphere(float x, float y) {
+        if (atmosphere <= radius) { return false; }
+
+        float r = radius + atmosphere;
+
+        return distanceSquared(x, y) <= (r * r);
+    }
+
+    public float getAtmosphere() { return atmosphere; }
 
     public void setPlanetType(PlanetType t) { planetType = t; }
 
@@ -72,7 +98,14 @@ public class Planet extends StellarObject {
                 break;
         }
 
+        if (atmosphere > 0) {
+            p.setAlpha(25);
+            canvas.drawCircle(xPos, yPos, radius + atmosphere, p);
+        }
+
+        p.setAlpha(255);
         canvas.drawCircle(xPos, yPos, radius, p);
+
     }
 
 

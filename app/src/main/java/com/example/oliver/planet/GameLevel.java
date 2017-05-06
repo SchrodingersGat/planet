@@ -42,18 +42,7 @@ public class GameLevel {
             // Reset ship acceleration
             ship.resetBeforeUpdate();
 
-            // Accelerate ship towards each planet
-            for (int ii = 0; ii < planets.size(); ii++) {
-
-                Planet planet = planets.get(ii);
-
-                if (planet.containsPoint(ship.getX(), ship.getY())) {
-                    ship.setCrashed(true);
-                    break;
-                }
-
-                ship.applyPlanetForce(planets.get(ii));
-            }
+            ship.updatePlanets(planets);
 
             if (!ship.hasCrashed()) {
 
