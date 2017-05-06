@@ -35,40 +35,42 @@ public class GameLevel {
 
     public void update() {
 
-        // Reset ship acceleration
-        ship.resetBeforeUpdate();
+        if (ship.isReleased() && !ship.hasCrashed()) {
 
-        // Accelerate ship towards each planet
-        for (int ii = 0; ii < planets.size(); ii++) {
+            // Reset ship acceleration
+            ship.resetBeforeUpdate();
 
-            Planet planet = planets.get(ii);
+            // Accelerate ship towards each planet
+            for (int ii = 0; ii < planets.size(); ii++) {
 
-            if (planet.containsPoint(ship.getX(), ship.getY())) {
-                ship.setCrashed(true);
-                break;
-            }
+                Planet planet = planets.get(ii);
 
-            ship.applyPlanetForce(planets.get(ii));
-        }
-
-        if (!ship.hasCrashed()) {
-
-            // Test each star for hit
-            for (int jj=0; jj<stars.size(); jj++)
-            {
-                Star star = stars.get(jj);
-
-                if (star.isCollected()) {
-                    continue;
+                if (planet.containsPoint(ship.getX(), ship.getY())) {
+                    ship.setCrashed(true);
+                    break;
                 }
 
-                if (star.containsPoint(ship.getX(), ship.getY())) {
-                    star.setCollected(true);
-                }
+                ship.applyPlanetForce(planets.get(ii));
             }
 
-            // Update ship position
-            ship.move();
+            if (!ship.hasCrashed()) {
+
+                // Test each star for hit
+                for (int jj = 0; jj < stars.size(); jj++) {
+                    Star star = stars.get(jj);
+
+                    if (star.isCollected()) {
+                        continue;
+                    }
+
+                    if (star.containsPoint(ship.getX(), ship.getY())) {
+                        star.setCollected(true);
+                    }
+                }
+
+                // Update ship position
+                ship.move();
+            }
         }
 
     }

@@ -13,7 +13,7 @@ public class GameThread extends Thread {
     private GameSurface gameSurface;
     private SurfaceHolder surfaceHolder;
 
-    final long frameTimeMs = 10;  // 50Hz
+    final long FRAME_TIME_MS = 10;
 
     public GameThread(GameSurface surface, SurfaceHolder holder) {
         this.gameSurface = surface;
@@ -55,7 +55,7 @@ public class GameThread extends Thread {
 
             waitTime = (now - startTime) / 1000000;
 
-            waitTime = frameTimeMs - waitTime;
+            waitTime = FRAME_TIME_MS - waitTime;
 
             // Minimum wait time
             if (waitTime < 5) {

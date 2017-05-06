@@ -13,15 +13,16 @@ import java.util.Vector;
 
 public class Ship extends GameObject {
 
-    static final float SHIP_RADIUS = 35;
+    static final float SHIP_RADIUS = 45;
 
-    private boolean crashed;
+    private boolean crashed = false;
+    private boolean released = false;
 
     private double angle;
 
     // Ship attributes
-    final private double maxSpeed = 12.5;
-    final private double maxSpeedSquared = maxSpeed * maxSpeed;
+    static final double MAX_SPEED = 25;
+    final private double maxSpeedSquared = MAX_SPEED * MAX_SPEED;
 
     final private double maxAngularSpeed = 0.125;
     final private double autoRotateSpeed = 2.05;
@@ -58,9 +59,52 @@ public class Ship extends GameObject {
         init();
     }
 
-    public boolean hasCrashed() { return crashed; }
+    public void setAngle(double angle) {
+        if (!released && !crashed) {
+            this.angle = angle;
+        }
+    }
 
+    public boolean hasCrashed() { return crashed; }
     public void setCrashed(boolean state) { crashed = state; }
+
+    public boolean isReleased() { return released; }
+
+    public void release(PointF vector) {
+
+        if (released) { return; }
+
+        reset();
+
+        float x = vector.x;
+        float y = vector.y;
+
+        double a = Math.atan2(y, x);
+
+        float d = distanceTo(x, y);
+
+        if (d > SHIP_RADIUS) {
+            d -= SHIP_RADIUS;
+        }
+
+        d /= 5;
+
+        if (d > MAX_SPEED) {
+            d = (float) MAX_SPEED;
+        }
+
+        xSpeed = d * (float) Math.cos(a);
+        ySpeed = d * (float) Math.sin(a);
+
+
+        if (!released) {
+            reset();
+            xSpeed = vector.x / 10;
+            ySpeed = vector.y / 10;
+
+            released = true;
+        }
+    }
 
     private void init() {
 
@@ -81,6 +125,7 @@ public class Ship extends GameObject {
         angle = 0;
 
         crashed = false;
+        released = false;
 
         breadcrumbs.clear();
     }
@@ -136,8 +181,8 @@ public class Ship extends GameObject {
         if (ss > maxSpeedSquared) {
             double sAngle = Math.atan2(ySpeed, xSpeed);
 
-            xSpeed = maxSpeed * Math.cos(sAngle);
-            ySpeed = maxSpeed * Math.sin(sAngle);
+            xSpeed = MAX_SPEED * Math.cos(sAngle);
+            ySpeed = MAX_SPEED * Math.sin(sAngle);
         }
 
         setPos(getX() + (float) xSpeed, getY() + (float) ySpeed);

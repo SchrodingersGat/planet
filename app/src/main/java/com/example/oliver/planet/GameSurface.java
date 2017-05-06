@@ -22,14 +22,16 @@ import java.util.Vector;
 
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
+    private final float EPSILOM = 0.0001f;
+
     private GameThread gameThread;
     public GameLevel level;
 
     private StellarObject stellarObjectBeingDragged = null;
     private boolean mapBeingDragged = false;
+    private boolean shipBeingDragged = false;
 
-    private float xMapOffset = 0.0f;
-    private float yMapOffset = 0.0f;
+    private PointF mapOffset = new PointF();
 
     private float WIDTH = 0;
     private float HEIGHT = 0;
@@ -40,10 +42,19 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private double CORNER_ANGLE = 0;
 
     // Keeping track of touch positions
-    private float xTouchLast = 0.0f;
-    private float yTouchLast = 0.0f;
+    private PointF touchLast = new PointF();
+    private PointF touchFirst = new PointF();
 
     private Vector<OffScreenArrow> arrows = new Vector<OffScreenArrow>();
+
+    /*
+    Various 'timers' to keep track of game states
+     */
+
+    // How long to look away from the position of the ship
+    private int lookAwayTimer = 0;
+    private float lookAwaySpring = 0.0f;
+    private final int LOOK_AWAY_TIMER_RESET = 50;
 
     public GameSurface(Context context) {
         super(context);
@@ -67,7 +78,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
-
         p = new Planet(-200, 500, 45);
         p.setPlanetType(Planet.PlanetType.SUN);
         level.planets.add(p);
@@ -80,7 +90,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         s = new Star(250, -50);
         level.stars.add(s);
 
-        level.ship.setPos(25,100);
+        level.ship.setPos(0, 0);
     }
 
     void updateScreenSize() {
@@ -97,8 +107,31 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     public void update() {
 
+        // Update game timers
+        updateTimers();
+
         // Update game mechanics
         level.update();
+    }
+
+    private void updateTimers() {
+
+        if (lookAwayTimer > 0) {
+            lookAwayTimer--;
+        }
+        else {
+            double d = (mapOffset.x * mapOffset.x) + (mapOffset.y * mapOffset.y);
+
+            if (d > EPSILOM) {
+
+                if (lookAwaySpring < 0.1) {
+                    lookAwaySpring += 0.01;
+                }
+
+                mapOffset.x *= (1 - lookAwaySpring);
+                mapOffset.y *= (1 - lookAwaySpring);
+            }
+        }
     }
 
     @Override
@@ -110,12 +143,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         canvas.save();
 
         canvas.translate(WIDTH/2, HEIGHT/2);
-        canvas.translate(xMapOffset, yMapOffset);
+        canvas.translate(mapOffset.x, mapOffset.y);
+
+        canvas.translate(-level.ship.xPos, -level.ship.yPos);
 
         canvas.drawColor(Color.BLACK);
 
         Paint L = new Paint();
-        L.setColor(Color.WHITE);
+        L.setColor(Color.RED);
 
         // Draw each planet
         for (int ii=0; ii<level.planets.size(); ii++) {
@@ -146,6 +181,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // Draw the ship
         if (itemOnScreen(level.ship, Ship.SHIP_RADIUS)) {
             level.ship.draw(canvas);
+
+            if (!level.ship.isReleased()) {
+                L.setStyle(Paint.Style.STROKE);
+                canvas.drawCircle(level.ship.getX(), level.ship.getY(), Ship.SHIP_RADIUS, L);
+            }
+
+            if (shipBeingDragged) {
+                PointF pos = getMapCoordsFromScreenPos(touchLast.x, touchLast.y);
+                canvas.drawLine(level.ship.getX(), level.ship.getY(), pos.x, pos.y, L);
+            }
         }
         else
         {
@@ -191,7 +236,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*
-    Normalize an angle in the range {-PI, PI} 
+    Normalize an angle in the range {-PI, PI}
      */
     private double normalizeAngle(double angle) {
         while (angle < -Math.PI) {
@@ -304,16 +349,22 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = xScreen - WIDTH / 2;
         float y = yScreen - HEIGHT / 2;
 
-        x -= xMapOffset;
-        y -= yMapOffset;
+        x -= mapOffset.x;
+        y -= mapOffset.y;
+
+        x += level.ship.xPos;
+        y += level.ship.yPos;
 
         return new PointF(x, y);
     }
 
     public PointF getScreenPosFromMapCoords(float xMap, float yMap) {
 
-        float x = xMap + xMapOffset;
-        float y = yMap + yMapOffset;
+        float x = xMap + mapOffset.x;
+        float y = yMap + mapOffset.y;
+
+        x -= level.ship.xPos;
+        y -= level.ship.yPos;
 
         x += WIDTH / 2;
         y += HEIGHT / 2;
@@ -328,34 +379,63 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = event.getX();
         float y = event.getY();
 
-        PointF worldPos = getMapCoordsFromScreenPos(x, y);
+        PointF worldPos = toGrid(getMapCoordsFromScreenPos(x, y), 10);
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+
+                touchFirst.set(x, y);
+
                 /* Test for item being clicked */
                 stellarObjectBeingDragged = level.testStellarObjectHit(worldPos.x, worldPos.y);
+
+                if (stellarObjectBeingDragged != null) {
+                    break;
+                }
+
+                if (level.ship.distanceTo(worldPos.x, worldPos.y) < Ship.SHIP_RADIUS) {
+                    shipBeingDragged = true;
+                    break;
+                }
+
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (stellarObjectBeingDragged != null) {
                     stellarObjectBeingDragged.setPos(worldPos.x, worldPos.y);
                 }
-                else
-                {
+                else if (shipBeingDragged) {
+                    level.ship.setAngle(Math.atan2(
+                            level.ship.getY() - worldPos.y,
+                            level.ship.getX() - worldPos.x));
+                }
+                else {
                     mapBeingDragged = true;
-                    xMapOffset += (x - xTouchLast);
-                    yMapOffset += (y - yTouchLast);
+                    addMapOffset(x-touchLast.x, y-touchLast.y);
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
 
-                if (stellarObjectBeingDragged == null && !mapBeingDragged) {
+                if (stellarObjectBeingDragged == null &&
+                    !mapBeingDragged &&
+                    !shipBeingDragged) {
                     level.reset();
                     level.ship.setPos(worldPos.x, worldPos.y);
+                    resetMapOffset();
+                }
+
+                if (shipBeingDragged) {
+
+                    if (level.ship.distanceTo(worldPos.x, worldPos.y) > Ship.SHIP_RADIUS) {
+                        level.ship.release(new PointF(
+                                level.ship.getX() - worldPos.x,
+                                level.ship.getY() - worldPos.y));
+                    }
                 }
 
                 stellarObjectBeingDragged = null;
                 mapBeingDragged = false;
+                shipBeingDragged = false;
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_OUTSIDE:
@@ -365,9 +445,30 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 break;
         }
 
-        xTouchLast = x;
-        yTouchLast = y;
+        touchLast.set(x, y);
 
         return true;
+    }
+
+    private PointF toGrid(float x, float y, float g) {
+        x = g * (int) (x / g + 0.5);
+        y = g * (int) (y / g + 0.5);
+
+        return new PointF(x, y);
+    }
+
+    private PointF toGrid(PointF p, float g) {
+        return toGrid(p.x, p.y, g);
+    }
+
+    private void addMapOffset(float x, float y) {
+        mapOffset.x += x;
+        mapOffset.y += y;
+        lookAwayTimer = LOOK_AWAY_TIMER_RESET;
+        lookAwaySpring = 0.0f;
+    }
+
+    private void resetMapOffset() {
+        mapOffset.set(0, 0);
     }
 }

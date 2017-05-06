@@ -20,7 +20,7 @@ public class Planet extends StellarObject {
     private PlanetType planetType = PlanetType.PLANET;
 
     // Acceleration constant
-    private final float G = 12.0f;
+    private final float G = 20.0f;
 
     public Planet(float x, float y, float r) {
         super(x, y);
