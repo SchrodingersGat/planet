@@ -7,6 +7,8 @@ package com.example.oliver.planet;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Canvas;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
 
 public class Planet extends StellarObject {
 
@@ -98,11 +100,26 @@ public class Planet extends StellarObject {
                 break;
         }
 
+        // Draw the atmosphere
         if (atmosphere > 0) {
-            p.setAlpha(25);
+
+            int[] colors = {p.getColor(), p.getColor(), Color.argb(0, 0, 0, 0)};
+            float[] stops = {0, radius / (radius + atmosphere), 1};
+
+            RadialGradient rg = new RadialGradient(
+                    pos.x,
+                    pos.y,
+                    radius + atmosphere,
+                    colors,
+                    stops,
+                    Shader.TileMode.CLAMP);
+
+            p.setShader(rg);
+            //p.setAlpha(25);
             canvas.drawCircle(pos.x, pos.y, radius + atmosphere, p);
         }
 
+        p.setShader(null);
         p.setAlpha(255);
         canvas.drawCircle(pos.x, pos.y, radius, p);
 
