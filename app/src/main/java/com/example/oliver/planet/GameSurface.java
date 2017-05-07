@@ -246,19 +246,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
+        // Draw the ship selector
+        drawSelector(canvas);
+
         // Draw the ship
         if (itemOnScreen(level.ship, Ship.SHIP_RADIUS)) {
             level.ship.draw(canvas);
-
-            if (!level.ship.isReleased()) {
-                L.setStyle(Paint.Style.STROKE);
-                canvas.drawCircle(level.ship.getX(), level.ship.getY(), Ship.SHIP_RADIUS, L);
-            }
-
-            if (shipBeingDragged) {
-                PointF pos = getMapCoordsFromScreenPos(touchLast.x, touchLast.y);
-                canvas.drawLine(level.ship.getX(), level.ship.getY(), pos.x, pos.y, L);
-            }
         }
         else
         {
@@ -273,6 +266,29 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         drawArrows(canvas);
 
         drawFuelBar(canvas);
+    }
+
+    private void drawSelector(Canvas canvas) {
+
+        Paint sp = new Paint();
+
+        sp.setARGB(50, 115, 200, 230);
+
+        PointF shipPos = level.ship.getPos();
+
+        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
+
+        sp.setAlpha(150);
+        sp.setStyle(Paint.Style.STROKE);
+        sp.setStrokeWidth(5);
+
+        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
+
+        sp.setARGB(50, 0, 0, 0);
+        sp.setStyle(Paint.Style.FILL);
+
+        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_INNER, sp);
+
     }
 
     private void drawArrows(Canvas canvas) {
