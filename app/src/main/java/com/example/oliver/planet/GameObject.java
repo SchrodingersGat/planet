@@ -42,7 +42,7 @@ public class GameObject {
     }
 
     public void setPos(PointF p) {
-        pos = p;
+        pos.set(p.x, p.y);
     }
 
     public float distanceSquared(float x, float y) {

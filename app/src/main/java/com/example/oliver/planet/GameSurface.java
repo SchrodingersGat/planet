@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.view.MotionEvent;
+import android.util.Log;
 
 import java.util.Vector;
 
@@ -29,7 +30,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private StellarObject stellarObjectBeingDragged = null;
     private boolean mapBeingDragged = false;
+
     private boolean shipBeingDragged = false;
+    private int shipDragTimer = 0;
+    private final int MAX_SHIP_DRAG_TIMER = 25;
 
     private PointF mapOffset = new PointF();
 
@@ -43,7 +47,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     // Keeping track of touch positions
     private PointF touchLast = new PointF();
-    private PointF touchFirst = new PointF();
 
     private Vector<OffScreenArrow> arrows = new Vector<OffScreenArrow>();
 
@@ -70,7 +73,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(-250, -50, 50);
         level.planets.add(p);
 
-        p = new Planet(100, 25, 35);
+        p = new Planet(500, 125, 55);
         p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
         p.setAtmosphere(50);
         level.planets.add(p);
@@ -79,9 +82,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
+        p = new Planet(-800, -800, 100);
+        p.setPlanetType(Planet.PlanetType.REPULSAR);
+        level.planets.add(p);
+
         p = new Planet(-200, 750, 95);
         p.setPlanetType(Planet.PlanetType.SUN);
-        p.setAtmosphere(100);
+        p.setAtmosphere(200);
         level.planets.add(p);
 
         Star s;
@@ -92,7 +99,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         s = new Star(250, -50);
         level.stars.add(s);
 
-        level.ship.setPos(0, 0);
+        level.reset();
     }
 
     void updateScreenSize() {
@@ -107,19 +114,72 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         CORNER_ANGLE = Math.atan2(HEIGHT/2, WIDTH/2);
     }
 
+    void updateShipTouch(PointF screenPos) {
+
+        PointF worldPos = getMapCoordsFromScreenPos(screenPos.x, screenPos.y);
+
+        float dist = level.ship.distanceTo(worldPos.x, worldPos.y);
+        double angle = Math.atan2(
+                        level.ship.getY() - worldPos.y,
+                        level.ship.getX() - worldPos.x);
+
+        if (shipBeingDragged) {
+            if (dist > Ship.SELECTION_RADIUS_INNER) {
+                level.ship.setTargetAngle(angle); //0.25 * Math.PI); // angle);
+            }
+            if (level.ship.isReleased() &&
+                !level.ship.hasCrashed() &&
+                dist > Ship.SELECTION_RADIUS_OUTER) {
+
+                level.ship.turnEngineOn();
+                level.ship.setThrust((dist - Ship.SELECTION_RADIUS_OUTER) / 500);
+            }
+            else {
+                level.ship.turnEngineOff();
+            }
+        }
+    }
+
     public void update() {
 
         // Update game timers
         updateTimers();
 
+        // If a touch-event is continuing
+        if (shipBeingDragged) {
+            updateShipTouch(touchLast);
+        }
+        else {
+            level.ship.turnEngineOff();
+        }
+
         // Update game mechanics
         level.update();
+
+        // Check if ship has left map
+        //TODO - Make this more graceful
+        if (level.ship.distanceTo(0, 0) > GameLevel.LEVEL_BOUNDS) {
+            level.reset();
+        }
+    }
+
+    void startDraggingShip() {
+
+        shipBeingDragged = true;
+        shipDragTimer = MAX_SHIP_DRAG_TIMER;
+    }
+
+    void stopDraggingShip() {
+        shipBeingDragged = false;
     }
 
     private void updateTimers() {
 
         if (lookAwayTimer > 0) {
             lookAwayTimer--;
+        }
+        else if (mapBeingDragged || shipBeingDragged) {
+            // Don't move screen in these cases
         }
         else {
             double d = (mapOffset.x * mapOffset.x) + (mapOffset.y * mapOffset.y);
@@ -215,9 +275,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         Paint L = new Paint();
         L.setColor(Color.RED);
 
+        // Offset by correct position
         canvas.translate(WIDTH/2, HEIGHT/2);
         canvas.translate(mapOffset.x, mapOffset.y);
-
         canvas.translate(-level.ship.pos.x, -level.ship.pos.y);
 
         // Draw each planet
@@ -272,23 +332,62 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         Paint sp = new Paint();
 
-        sp.setARGB(50, 115, 200, 230);
+        sp.setARGB(255, 115, 200, 230);
+
+        // Selector fades in once activated
+        if (shipDragTimer > 0) {
+            shipDragTimer--;
+        }
+
+        float fade = (float) (MAX_SHIP_DRAG_TIMER - shipDragTimer) / MAX_SHIP_DRAG_TIMER;
+
+        sp.setAlpha((int) (50 * fade));
 
         PointF shipPos = level.ship.getPos();
 
-        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
+        PointF worldPos = getMapCoordsFromScreenPos(touchLast.x, touchLast.y);
+
+        if (shipBeingDragged) {
+            canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
+        }
+
+        if (shipDragTimer > 0) {
+            shipDragTimer--;
+        }
 
         sp.setAlpha(150);
         sp.setStyle(Paint.Style.STROKE);
         sp.setStrokeWidth(5);
 
-        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
-
-        sp.setARGB(50, 0, 0, 0);
-        sp.setStyle(Paint.Style.FILL);
-
         canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_INNER, sp);
 
+        sp.setAlpha((int) (150 * fade));
+
+        if (shipBeingDragged) {
+
+            canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
+
+            float d = level.ship.distanceTo(worldPos.x, worldPos.y);
+
+            if (d > Ship.SELECTION_RADIUS_OUTER) {
+                d = Ship.SELECTION_RADIUS_OUTER;
+            }
+
+            if (d > Ship.SELECTION_RADIUS_INNER) {
+
+                float ca = (float) Math.cos(-level.ship.getAngle());
+                float sa = (float) Math.sin(-level.ship.getAngle());
+
+                /*
+                canvas.drawLine(
+                        shipPos.x - Ship.SELECTION_RADIUS_INNER * ca,
+                        shipPos.y + Ship.SELECTION_RADIUS_INNER * sa,
+                        shipPos.x - d * ca,
+                        shipPos.y + d * sa,
+                        sp);
+                */
+            }
+        }
     }
 
     private void drawArrows(Canvas canvas) {
@@ -467,17 +566,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         PointF worldPos = toGrid(getMapCoordsFromScreenPos(x, y), 10);
 
+        float dShip = level.ship.distanceTo(worldPos.x, worldPos.y);
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-
-                touchFirst.set(x, y);
-
-                if (level.ship.isReleased() && !level.ship.hasCrashed()) {
-                    if (level.ship.distanceTo(worldPos.x, worldPos.y) < 5 * Ship.SHIP_RADIUS) {
-                        level.ship.turnEngineOn();
-                        break;
-                    }
-                }
 
                 /* Test for item being clicked */
                 stellarObjectBeingDragged = level.testStellarObjectHit(worldPos.x, worldPos.y);
@@ -486,44 +578,43 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     break;
                 }
 
-                if (level.ship.distanceTo(worldPos.x, worldPos.y) < Ship.SHIP_RADIUS) {
-                    shipBeingDragged = true;
+                if (level.ship.distanceTo(worldPos.x, worldPos.y) < Ship.SELECTION_RADIUS_OUTER) {
+                    startDraggingShip();
                     break;
                 }
 
                 break;
             case MotionEvent.ACTION_MOVE:
+
                 if (stellarObjectBeingDragged != null) {
                     stellarObjectBeingDragged.setPos(worldPos.x, worldPos.y);
                 }
                 else if (shipBeingDragged) {
-                    level.ship.setAngle(Math.atan2(
-                            level.ship.getY() - worldPos.y,
-                            level.ship.getX() - worldPos.x));
+
                 }
                 else {
                     mapBeingDragged = true;
                     addMapOffset(x-touchLast.x, y-touchLast.y);
                 }
+
                 break;
 
             case MotionEvent.ACTION_UP:
 
                 if (level.ship.isEngineOn()) {
                     level.ship.turnEngineOff();
-                    break;
                 }
 
-                if (stellarObjectBeingDragged == null &&
+                else if (stellarObjectBeingDragged == null &&
                     !mapBeingDragged &&
                     !shipBeingDragged) {
                     level.reset();
                     resetMapOffset();
                 }
 
-                if (shipBeingDragged) {
+                else if (shipBeingDragged && !level.ship.isReleased()) {
 
-                    if (level.ship.distanceTo(worldPos.x, worldPos.y) > Ship.SHIP_RADIUS) {
+                    if (dShip > Ship.SELECTION_RADIUS_OUTER) {
                         level.ship.release(new PointF(
                                 level.ship.getX() - worldPos.x,
                                 level.ship.getY() - worldPos.y));
@@ -532,7 +623,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 stellarObjectBeingDragged = null;
                 mapBeingDragged = false;
-                shipBeingDragged = false;
+                stopDraggingShip();
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_OUTSIDE:

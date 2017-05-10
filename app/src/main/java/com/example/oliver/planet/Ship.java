@@ -14,6 +14,8 @@ import java.util.Vector;
 public class Ship extends GameObject {
 
     static final float SHIP_RADIUS = 45;
+    static final float SELECTION_RADIUS_INNER = 75;
+    static final float SELECTION_RADIUS_OUTER = 200;
 
     private boolean crashed = false;
     private boolean released = false;
@@ -21,11 +23,8 @@ public class Ship extends GameObject {
     private double angle;
 
     // Ship attributes
-    static final float MAX_SPEED = 25;
+    static final float MAX_SPEED = 35;
     final private float maxSpeedSquared = MAX_SPEED * MAX_SPEED;
-
-    final private float maxAngularSpeed = 0.125f;
-    final private float autoRotateSpeed = 2.05f;
 
     // Ship speed
     private PointF speed = new PointF(0, 0);
@@ -35,17 +34,25 @@ public class Ship extends GameObject {
     private double aSpeed;
     private double aAcc;
 
-    public int fuel = 0;
+    public float fuel = 0;
+    private float thrust = 0;
     public boolean engineOn = false;
-    private float thrust = 0.5f;
     static final float MAX_THRUST = 1.25f;
-    private final float THRUST_INCREMENT = MAX_THRUST / 25;
-    static final int MAX_FUEL = 100;
+    //private final float THRUST_INCREMENT = MAX_THRUST / 25;
+    static final float MAX_FUEL = 250;
 
     // Breadcrumbs
     private Vector<PointF> breadcrumbs = new Vector<PointF>();
     private boolean useBreadcrumbs = true;
     private int maxBreadcrumbs = 500;
+
+    // Auto-rotation timer
+    private double targetAngle = 0.0f;
+    private int rotationTimer = 0;
+    private int MAX_ROTATION_TIMER = 75;
+    // Limit rotation speed
+    final double MAX_ROT_SPEED = 0.05;
+    private double rotationSpeed = 0.0;
 
     public Ship() {
         super();
@@ -76,6 +83,7 @@ public class Ship extends GameObject {
 
     public void turnEngineOff() {
         engineOn = false;
+        thrust = 0;
     }
 
     public Ship(float x, float y, float a) {
@@ -88,13 +96,40 @@ public class Ship extends GameObject {
     /**
      * Force-set the angle of the ship
      * e.g. when updating launching angle
-     * @param angle - ship angle in radians
+     * @param aTarget - ship angle in radians
      */
-    public void setAngle(double angle) {
-        if (!released && !crashed) {
-            this.angle = angle;
-        }
+    public void setTargetAngle(double aTarget) {
+
+        rotationTimer = MAX_ROTATION_TIMER;
+        targetAngle = aTarget;
     }
+
+    private void rotateTowards(double targetAngle) {
+
+        double dAngle = targetAngle - angle;
+
+        if (dAngle > Math.PI) {
+            dAngle -= 2 * Math.PI;
+        }
+
+        if (dAngle < -Math.PI) {
+            dAngle += 2 * Math.PI;
+        }
+
+        if (dAngle > MAX_ROT_SPEED) {
+            dAngle = MAX_ROT_SPEED;
+        }
+
+        if (dAngle < -MAX_ROT_SPEED) {
+            dAngle = -MAX_ROT_SPEED;
+        }
+
+        angle += dAngle;
+
+        rotationSpeed = dAngle;
+    }
+
+    public double getAngle() { return angle; }
 
     public boolean hasCrashed() { return crashed; }
     public void setCrashed(boolean state) { crashed = state; }
@@ -109,17 +144,21 @@ public class Ship extends GameObject {
 
         if (released) { return; }
 
-        reset();
-
         float x = vector.x;
         float y = vector.y;
 
-        angle = Math.atan2(y, x);
-
         float d = distanceTo(x, y);
 
-        if (d > SHIP_RADIUS) {
-            d -= SHIP_RADIUS;
+        if (d < SELECTION_RADIUS_OUTER) {
+            return;
+        }
+
+        reset();
+
+        d -= SELECTION_RADIUS_OUTER;
+
+        if (d < 0) {
+            d = 0;
         }
 
         d /= 5;
@@ -128,12 +167,16 @@ public class Ship extends GameObject {
             d = (float) MAX_SPEED;
         }
 
+        angle = Math.atan2(y, x);
+
         speed.x = d * (float) Math.cos(angle);
         speed.y = d * (float) Math.sin(angle);
 
         released = true;
-    }
 
+        // Point in the right direction
+        rotationTimer = 0;
+    }
 
     /**
      * Reset ship to defaults
@@ -217,34 +260,69 @@ public class Ship extends GameObject {
      * Rotate the ship towards its direction heading
      */
     public void autoRotate() {
-        double aMove = Math.atan2(speed.y, speed.x);
 
-        // TODO - Perhaps more complex behavoir here...
-        angle = aMove;
+        if (crashed) {
+            rotationSpeed = 0;
+            return;
+        }
+
+        if (!released) {
+            rotationSpeed = 0;
+            angle = targetAngle;
+            return;
+        }
+
+        // Allow a certain amount of time after user has rotated ship
+        if (rotationTimer > 0) {
+            rotationTimer--;
+            rotateTowards(targetAngle);
+        }
+        else if (released) {
+            double aMove = Math.atan2(speed.y, speed.x);
+            rotateTowards(aMove);
+        }
+        else {
+            rotationSpeed = 0;
+        }
+    }
+
+    public void setThrust(float t) {
+
+        if (t < 0) {
+            t = 0;
+        }
+
+        if (t > MAX_THRUST) {
+            t = MAX_THRUST;
+        }
+
+        thrust = t;
     }
 
     /**
     Apply linear thrust if the engine is on
      */
-    public void applyThrust() {
+    private void applyThrust() {
 
-        if (!engineOn || fuel == 0) {
+        if (!engineOn || fuel <= 0) {
             thrust = 0;
             return;
         }
 
-        if (thrust < MAX_THRUST) {
-            thrust += THRUST_INCREMENT;
+        float t = thrust;
+
+        if (t < 0) {
+            t = 0;
         }
 
-        if (thrust > MAX_THRUST) {
-            thrust = MAX_THRUST;
+        if (t > MAX_THRUST) {
+            t = MAX_THRUST;
         }
 
-        fuel--;
+        fuel -= t;
 
-        acceleration.x += thrust * (float) Math.cos(angle);
-        acceleration.y += thrust * (float) Math.sin(angle);
+        acceleration.x += t * (float) Math.cos(angle);
+        acceleration.y += t * (float) Math.sin(angle);
     }
 
     public void move() {
@@ -278,6 +356,8 @@ public class Ship extends GameObject {
      */
     public void dropBreadcrumb() {
 
+        final float BREADCRUMB_DISTANCE = 2500;
+
         if (!useBreadcrumbs) { return; }
 
         while (breadcrumbs.size() > maxBreadcrumbs) {
@@ -290,7 +370,7 @@ public class Ship extends GameObject {
         else {
             PointF crumb = breadcrumbs.lastElement();
 
-            if (distanceSquared(crumb.x, crumb.y) > 1000) {
+            if (distanceSquared(crumb.x, crumb.y) > BREADCRUMB_DISTANCE) {
                 breadcrumbs.add(new PointF(pos.x, pos.y));
             }
         }
@@ -338,15 +418,17 @@ public class Ship extends GameObject {
         // Thrust size
         float T = 5 * W * thrust / MAX_THRUST;
 
-        if (!crashed && released && engineOn && fuel > 0) {
-            p.setColor(Color.argb(150, 240, 200, 85));
-            path.reset();
-            path.moveTo(-W, T);
-            path.lineTo( W, T);
-            path.lineTo( 0, 0);
-            path.lineTo(-W, T);
+        if (!crashed &&
+            released &&
+            engineOn &&
+            fuel > 0 &&
+            thrust > 0) {
 
-            canvas.drawPath(path, p);
+            drawThrustJet(canvas);
+        }
+
+        if (released && !crashed && Math.abs(rotationSpeed) > 0.001) {
+            drawRotationJet(canvas);
         }
 
         p.setColor(Color.RED);
@@ -360,5 +442,38 @@ public class Ship extends GameObject {
         canvas.drawPath(path, p);
 
         canvas.restore();
+    }
+
+    private void drawThrustJet(Canvas canvas) {
+        Paint thrustPaint = new Paint();
+
+        Path path = new Path();
+
+        thrustPaint.setColor(Color.argb(150, 240, 200, 85));
+
+        float W = 15;
+        float H = 65;
+
+        float T = 150 * thrust / MAX_THRUST;
+
+        path.reset();
+        path.moveTo(-W, T);
+        path.lineTo( W, T);
+        path.lineTo( 0, 0);
+        path.lineTo(-W, T);
+
+        canvas.drawPath(path, thrustPaint);
+    }
+
+    private void drawRotationJet(Canvas canvas) {
+        Paint jetPaint = new Paint();
+
+        jetPaint.setColor(Color.argb(100, 150, 220, 230));
+        jetPaint.setStrokeWidth(15);
+
+        double r = -1 * rotationSpeed * 0.5 * SELECTION_RADIUS_INNER / MAX_ROT_SPEED;
+
+        final float yOff = -15;
+        canvas.drawLine(0, yOff, (float) r, yOff, jetPaint);
     }
 }

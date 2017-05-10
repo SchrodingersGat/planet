@@ -9,6 +9,8 @@ import java.util.Vector;
 
 public class GameLevel {
 
+    static final float LEVEL_BOUNDS = 5000;
+
     public Vector<Planet> planets;
     public Vector<Star> stars;
 
@@ -65,6 +67,10 @@ public class GameLevel {
                 // Update ship position
                 ship.move();
             }
+        }
+
+        if (!ship.hasCrashed()) {
+            ship.autoRotate();
         }
 
     }
