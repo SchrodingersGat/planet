@@ -37,9 +37,9 @@ public class Ship extends GameObject {
     public float fuel = 0;
     private float thrust = 0;
     public boolean engineOn = false;
-    static final float MAX_THRUST = 1.00f;
+    static final float MAX_THRUST = 0.75f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
-    static final float MAX_FUEL = 250;
+    static final float MAX_FUEL = 100;
 
     // Breadcrumbs
     private Vector<Breadcrumb> breadcrumbs = new Vector<Breadcrumb>();
@@ -49,7 +49,7 @@ public class Ship extends GameObject {
     // Auto-rotation timer
     private double targetAngle = 0.0f;
     private int rotationTimer = 0;
-    private int MAX_ROTATION_TIMER = 125;
+    private int MAX_ROTATION_TIMER = 200;
     // Limit rotation speed
     final double MAX_ROT_SPEED = 0.025;
     private double rotationSpeed = 0.0;
