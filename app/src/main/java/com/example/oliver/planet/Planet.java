@@ -17,6 +17,7 @@ public class Planet extends StellarObject {
         SUN,
         BLACK_HOLE,
         REPULSAR,
+        MOON
     };
 
     private PlanetType planetType = PlanetType.PLANET;
@@ -26,7 +27,7 @@ public class Planet extends StellarObject {
     static final float MAX_ATMOSPHERE = 250.0f;
 
     // Acceleration constant
-    private final float G = 20.0f;
+    private final float G = 500.0f;
 
     public Planet(float x, float y, float r) {
         super(x, y);
@@ -62,7 +63,7 @@ public class Planet extends StellarObject {
     public double getForce(float x, float y) {
 
         // Base force
-        double force = G * radius * radius / distanceSquared(x, y);
+        double force = G * radius / distanceSquared(x, y);
 
         // Force modifiers depending on planet type
         switch (planetType) {
@@ -74,7 +75,7 @@ public class Planet extends StellarObject {
                 force *= -1;
                 break;
             case BLACK_HOLE:
-                force *= force;
+                force *= radius;
                 break;
         }
 

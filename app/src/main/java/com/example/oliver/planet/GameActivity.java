@@ -7,10 +7,13 @@ import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
+import android.util.Log;
 
 import com.example.oliver.planet.GameSurface;
 
 public class GameActivity extends Activity {
+
+    GameSurface game;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -23,6 +26,33 @@ public class GameActivity extends Activity {
         // Set no title
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        this.setContentView(new GameSurface(this));
+        game = new GameSurface(this);
+        this.setContentView(game);
+
+        Log.i("activity", "created");
     }
+
+    @Override
+    public void onResume() {
+
+        if (game != null) {
+            //game.gameThread.setRunning(true);
+            //game.gameThread.start();
+        }
+        super.onResume();
+
+        Log.i("activity", "resume");
+    }
+
+    @Override
+    public void onPause() {
+        if (game != null) {
+            //game.gameThread.setRunning(false);
+        }
+
+        super.onPause();
+
+        Log.i("activity", "pause");
+    }
+
 }

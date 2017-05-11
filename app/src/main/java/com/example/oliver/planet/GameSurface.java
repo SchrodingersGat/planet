@@ -25,7 +25,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private final float EPSILOM = 0.0001f;
 
-    private GameThread gameThread;
+    public GameThread gameThread;
     public GameLevel level;
 
     private StellarObject stellarObjectBeingDragged = null;
@@ -42,6 +42,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private float X_MID = 0;
     private float Y_MID = 0;
+
+    private float SCREEN_MIN = 0;
+    private float SCREEN_MAX = 0;
 
     private double CORNER_ANGLE = 0;
 
@@ -70,25 +73,28 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         Planet p;
 
-        p = new Planet(-250, -50, 50);
+        p = new Planet(-450, -250, 90);
         level.planets.add(p);
 
-        p = new Planet(500, 125, 55);
+        p = new Planet(500, 125, 10);
         p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
         p.setAtmosphere(50);
         level.planets.add(p);
 
-        p = new Planet(800, 500, 65);
+        p = new Planet(800, 500, 105);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
-        p = new Planet(-800, -800, 100);
+        p = new Planet(-4800, -800, 130);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
-        p = new Planet(-200, 750, 95);
+        p = new Planet(-1200, 750, 150);
         p.setPlanetType(Planet.PlanetType.SUN);
         p.setAtmosphere(200);
+        level.planets.add(p);
+
+        p = new Planet(500, 1800, 100);
         level.planets.add(p);
 
         Star s;
@@ -99,7 +105,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         s = new Star(250, -50);
         level.stars.add(s);
 
+        s = new Star(-500, 1000);
+        level.stars.add(s);
+
+        reset();
+    }
+
+    void reset() {
         level.reset();
+        mapOffset.set(0,0);
     }
 
     void updateScreenSize() {
@@ -109,6 +123,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         X_MID = WIDTH / 2;
         Y_MID = HEIGHT / 2;
+
+        SCREEN_MIN = Math.min(WIDTH, HEIGHT);
+        SCREEN_MAX = Math.max(WIDTH, HEIGHT);
 
         // Calculate angle to the first corner
         CORNER_ANGLE = Math.atan2(HEIGHT/2, WIDTH/2);
@@ -159,8 +176,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // Check if ship has left map
         //TODO - Make this more graceful
         if (level.ship.distanceTo(0, 0) > GameLevel.LEVEL_BOUNDS) {
-            level.reset();
+            reset();
         }
+        else if (level.ship.hasCrashed()) {
+            reset();
+        }
+
     }
 
     void startDraggingShip() {
@@ -502,12 +523,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.gameThread.start();
 
         updateScreenSize();
+
+        //Log.i("surface", "created");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
 
         updateScreenSize();
+
+        //Log.i("surface", "changed");
     }
 
     @Override
@@ -526,6 +551,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             }
             retry= true;
         }
+
+        //Log.i("surface", "destroyed");
     }
 
     public PointF getMapCoordsFromScreenPos(float xScreen, float yScreen) {
@@ -608,7 +635,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 else if (stellarObjectBeingDragged == null &&
                     !mapBeingDragged &&
                     !shipBeingDragged) {
-                    level.reset();
+                    reset();
                     resetMapOffset();
                 }
 

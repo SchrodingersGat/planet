@@ -23,7 +23,7 @@ public class Ship extends GameObject {
     private double angle;
 
     // Ship attributes
-    static final float MAX_SPEED = 35;
+    static final float MAX_SPEED = 15;
     final private float maxSpeedSquared = MAX_SPEED * MAX_SPEED;
 
     // Ship speed
@@ -37,21 +37,21 @@ public class Ship extends GameObject {
     public float fuel = 0;
     private float thrust = 0;
     public boolean engineOn = false;
-    static final float MAX_THRUST = 1.25f;
+    static final float MAX_THRUST = 1.00f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
     static final float MAX_FUEL = 250;
 
     // Breadcrumbs
-    private Vector<PointF> breadcrumbs = new Vector<PointF>();
+    private Vector<Breadcrumb> breadcrumbs = new Vector<Breadcrumb>();
     private boolean useBreadcrumbs = true;
-    private int maxBreadcrumbs = 500;
+    private final int MAX_BREADCRUMBS = 500;
 
     // Auto-rotation timer
     private double targetAngle = 0.0f;
     private int rotationTimer = 0;
-    private int MAX_ROTATION_TIMER = 75;
+    private int MAX_ROTATION_TIMER = 125;
     // Limit rotation speed
-    final double MAX_ROT_SPEED = 0.05;
+    final double MAX_ROT_SPEED = 0.025;
     private double rotationSpeed = 0.0;
 
     public Ship() {
@@ -161,7 +161,7 @@ public class Ship extends GameObject {
             d = 0;
         }
 
-        d /= 5;
+        //d /= 5;
 
         if (d > MAX_SPEED) {
             d = (float) MAX_SPEED;
@@ -356,23 +356,32 @@ public class Ship extends GameObject {
      */
     public void dropBreadcrumb() {
 
-        final float BREADCRUMB_DISTANCE = 2500;
+        final float BCD = Breadcrumb.BREADCRUMB_DISTANCE * Breadcrumb.BREADCRUMB_DISTANCE;
 
         if (!useBreadcrumbs) { return; }
 
-        while (breadcrumbs.size() > maxBreadcrumbs) {
+        while (breadcrumbs.size() > MAX_BREADCRUMBS) {
             breadcrumbs.remove(0);
         }
 
+        boolean dropCrumb = false;
+
         if (breadcrumbs.size() == 0) {
-            breadcrumbs.add(new PointF(pos.x, pos.y));
+            dropCrumb = true;
         }
         else {
-            PointF crumb = breadcrumbs.lastElement();
+            PointF crumbPos = breadcrumbs.lastElement().position;
 
-            if (distanceSquared(crumb.x, crumb.y) > BREADCRUMB_DISTANCE) {
-                breadcrumbs.add(new PointF(pos.x, pos.y));
+            if (distanceSquared(crumbPos.x, crumbPos.y) > BCD) {
+                dropCrumb = true;
             }
+        }
+
+        if (dropCrumb) {
+
+            Breadcrumb b = new Breadcrumb(pos, angle, thrust);
+
+            breadcrumbs.add(b);
         }
     }
 
@@ -382,18 +391,12 @@ public class Ship extends GameObject {
      */
     public void drawBreadcrumbs(Canvas canvas) {
 
-        Paint crumbPaint = new Paint();
-        crumbPaint.setColor(Color.RED);
-        crumbPaint.setStrokeWidth(5);
-        PointF crumb;
-
         // Draw breadcrumbs
         if (useBreadcrumbs) {
             for (int i=0; i<breadcrumbs.size(); i++) {
-                crumb = breadcrumbs.get(i);
 
-                canvas.drawPoint(crumb.x, crumb.y, crumbPaint);
-                //canvas.drawCircle(crumb.x, crumb.y, 3, crumbPaint);
+                Breadcrumb b = breadcrumbs.get(i);
+                b.draw(canvas);
             }
         }
     }
