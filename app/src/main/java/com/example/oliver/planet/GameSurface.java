@@ -107,6 +107,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         s = new Star(-500, 1000);
         level.stars.add(s);
 
+        level.endZone.setPos(0, 900);
+
         reset();
     }
 
@@ -178,6 +180,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             reset();
         }
         else if (level.ship.hasCrashed()) {
+            reset();
+        }
+
+        // Check if end zone has been reached
+        if (level.endZone.testShip(level.ship)) {
             reset();
         }
 
@@ -324,6 +331,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             {
                 arrows.add(new OffScreenArrow(s.getX(), s.getY(), Color.YELLOW));
             }
+        }
+
+        // Draw the endpoint
+        if (itemOnScreen(level.endZone, Galaxy.GALAXY_RADIUS)) {
+            level.endZone.draw(canvas);
+        }
+        else {
+            arrows.add(new OffScreenArrow(
+                    level.endZone.getX(),
+                    level.endZone.getY(),
+                    Color.WHITE));
         }
 
         // Draw the ship selector

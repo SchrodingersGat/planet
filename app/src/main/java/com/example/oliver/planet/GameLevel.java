@@ -14,6 +14,8 @@ public class GameLevel {
     public Vector<Planet> planets;
     public Vector<Star> stars;
 
+    public Galaxy endZone;
+
     public Ship ship;
 
     public PointF shipStartingPosition = new PointF(0, 0);
@@ -23,6 +25,8 @@ public class GameLevel {
         stars = new Vector<Star>();
 
         ship = new Ship();
+
+        endZone = new Galaxy(0, 0);
     }
 
     /*
