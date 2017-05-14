@@ -78,7 +78,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         p = new Planet(500, 125, 10);
         p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
-        p.setAtmosphere(50);
         level.planets.add(p);
 
         p = new Planet(800, 500, 105);
@@ -91,7 +90,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         p = new Planet(-1200, 750, 150);
         p.setPlanetType(Planet.PlanetType.SUN);
-        p.setAtmosphere(200);
+        p.setAtmosphere(500);
         level.planets.add(p);
 
         p = new Planet(500, 1800, 100);
@@ -305,7 +304,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         for (int ii=0; ii<level.planets.size(); ii++) {
             Planet p = level.planets.get(ii);
 
-            if (itemOnScreen(p, p.getRadius())) {
+            if (itemOnScreen(p, p.getTotalRadius())) {
                 level.planets.get(ii).draw(canvas);
             }
             else {

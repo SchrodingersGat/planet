@@ -24,7 +24,11 @@ public class Planet extends StellarObject {
 
     // Atmosphere radius
     private float atmosphere = 0.0f;
-    static final float MAX_ATMOSPHERE = 250.0f;
+    static final float MAX_ATMOSPHERE = 2500.0f;
+
+    public float getTotalRadius() {
+        return radius + atmosphere;
+    }
 
     // Acceleration constant
     private final float G = 500.0f;
@@ -49,7 +53,11 @@ public class Planet extends StellarObject {
     public boolean pointWithinAtmosphere(float x, float y) {
         if (atmosphere <= radius) { return false; }
 
-        float r = radius + atmosphere;
+        float r = radius + atmosphere - 50;
+
+        if (r < 0) {
+            r = 0;
+        }
 
         return distanceSquared(x, y) <= (r * r);
     }
@@ -101,11 +109,26 @@ public class Planet extends StellarObject {
                 break;
         }
 
-        // Draw the atmosphere
+        // Draw the atmosphere (for a sun)
         if (atmosphere > 0) {
 
-            int[] colors = {p.getColor(), p.getColor(), Color.argb(0, 0, 0, 0)};
-            float[] stops = {0, radius / (radius + atmosphere), 1};
+            final int r = 250;
+            final int g = 220;
+            final int b = 50;
+
+            int[] colors = {
+                    Color.argb(150, r, g, b),
+                    Color.argb(50, r, g, b),
+                    Color.argb(0, r, g, b)
+            };
+
+            float R = radius + atmosphere;
+
+            float[] stops = {
+                    radius / R,
+                    (R - 50) / R,
+                    1.0f
+            };
 
             RadialGradient rg = new RadialGradient(
                     pos.x,
@@ -122,6 +145,7 @@ public class Planet extends StellarObject {
 
         p.setShader(null);
         p.setAlpha(255);
+        p.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawCircle(pos.x, pos.y, radius, p);
 
     }

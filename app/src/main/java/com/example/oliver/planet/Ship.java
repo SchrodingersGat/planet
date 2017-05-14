@@ -40,6 +40,7 @@ public class Ship extends GameObject {
     static final float MAX_THRUST = 0.75f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
     static final float MAX_FUEL = 100;
+    static final float SUN_FUEL_RECHARGE = 0.5f;
 
     // Breadcrumbs
     private Vector<Breadcrumb> breadcrumbs = new Vector<Breadcrumb>();
@@ -245,8 +246,16 @@ public class Ship extends GameObject {
 
             accelerate(ax, ay);
 
-            if (planet.pointWithinAtmosphere(pos.x, pos.y)) {
+            if (planet.getPlanetType() == Planet.PlanetType.SUN && planet.pointWithinAtmosphere(pos.x, pos.y)) {
+
+                fuel += SUN_FUEL_RECHARGE;
+
+                if (fuel > MAX_FUEL) {
+                    fuel = MAX_FUEL;
+                }
+
                 hitAtmosphere = planet;
+
             }
         }
 
