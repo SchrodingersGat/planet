@@ -28,14 +28,9 @@ public class Breadcrumb {
         vector.set((float) dx, (float) dy);
     }
 
-    public void draw(Canvas canvas) {
+    public void draw(Canvas canvas, Paint paint) {
 
-        Paint crumbPaint = new Paint();
-
-        crumbPaint.setColor(Color.RED);
-        crumbPaint.setStrokeWidth(3);
-
-        canvas.drawLine(position.x, position.y, vector.x, vector.y, crumbPaint);
-        canvas.drawCircle(position.x, position.y, 5, crumbPaint);
+        canvas.drawLine(position.x, position.y, vector.x, vector.y, paint);
+        canvas.drawCircle(position.x, position.y, 5, paint);
     }
 }

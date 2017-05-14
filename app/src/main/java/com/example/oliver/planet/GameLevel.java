@@ -9,8 +9,9 @@ import java.util.Vector;
 
 public class GameLevel {
 
-    static final float LEVEL_BOUNDS = 25000;
+    static final float LEVEL_BOUNDS = 10000;
 
+    public Vector<WormholePair> wormholes;
     public Vector<Planet> planets;
     public Vector<Star> stars;
 
@@ -23,6 +24,7 @@ public class GameLevel {
     public GameLevel() {
         planets = new Vector<Planet>();
         stars = new Vector<Star>();
+        wormholes = new Vector<WormholePair>();
 
         ship = new Ship();
 
@@ -46,12 +48,27 @@ public class GameLevel {
 
     public void update() {
 
+        Planet p;
+
         if (ship.isReleased() && !ship.hasCrashed()) {
 
             // Reset ship acceleration
             ship.resetBeforeUpdate();
 
-            ship.updatePlanets(planets);
+            for (int i=0; i<wormholes.size(); i++) {
+                wormholes.get(i).updateShip(ship);
+            }
+
+            // Accelerate towards each planet
+            for (int i=0; i<planets.size(); i++) {
+                p = planets.get(i);
+
+                ship.applyPlanetForce(p);
+
+                if (p.containsPoint(ship.getPos())) {
+                    ship.setCrashed(true);
+                }
+            }
 
             if (!ship.hasCrashed()) {
 
@@ -63,7 +80,7 @@ public class GameLevel {
                         continue;
                     }
 
-                    if (star.containsPoint(ship.getX(), ship.getY())) {
+                    if (star.testCollection(ship.getX(), ship.getY())) {
                         star.setCollected(true);
                     }
                 }

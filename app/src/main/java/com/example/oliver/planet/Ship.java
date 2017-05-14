@@ -22,8 +22,10 @@ public class Ship extends GameObject {
 
     private double angle;
 
+    public PointF releasePoint;
+
     // Ship attributes
-    static final float MAX_SPEED = 15;
+    static final float MAX_SPEED = 17.5f;
     final private float maxSpeedSquared = MAX_SPEED * MAX_SPEED;
 
     // Ship speed
@@ -37,15 +39,17 @@ public class Ship extends GameObject {
     public float fuel = 0;
     private float thrust = 0;
     public boolean engineOn = false;
-    static final float MAX_THRUST = 0.75f;
+    static final float MAX_THRUST = 0.65f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
-    static final float MAX_FUEL = 100;
+    static final float MAX_FUEL = 10000;
     static final float SUN_FUEL_RECHARGE = 0.5f;
 
     // Breadcrumbs
     private Vector<Breadcrumb> breadcrumbs = new Vector<Breadcrumb>();
+    private Vector<Vector<Breadcrumb>> breadcrumbHistory = new Vector<Vector<Breadcrumb>>();
     private boolean useBreadcrumbs = true;
     private final int MAX_BREADCRUMBS = 500;
+    private final int BREADCRUMB_HISTORY = 3;
 
     // Auto-rotation timer
     private double targetAngle = 0.0f;
@@ -177,6 +181,29 @@ public class Ship extends GameObject {
 
         // Point in the right direction
         rotationTimer = 0;
+
+        releasePoint = vector;
+    }
+
+    // Update breadcrumb history
+    void transferBreadcrumbs() {
+
+        if (breadcrumbs.size() > 0) {
+            Vector<Breadcrumb> history = new Vector<Breadcrumb>();
+
+            for (int i=0; i<breadcrumbs.size(); i++) {
+                history.add(breadcrumbs.get(i));
+            }
+
+            breadcrumbHistory.add(history);
+
+            if (breadcrumbHistory.size() > BREADCRUMB_HISTORY) {
+                breadcrumbHistory.remove(0);
+            }
+
+            breadcrumbs.clear();
+        }
+
     }
 
     /**
@@ -192,7 +219,7 @@ public class Ship extends GameObject {
         crashed = false;
         released = false;
 
-        breadcrumbs.clear();
+        transferBreadcrumbs();
     }
 
     public void resetAcceleration() {
@@ -221,47 +248,29 @@ public class Ship extends GameObject {
         resetAngularAcceleration();
     }
 
-    public void updatePlanets(Vector<Planet> planets) {
-
-        Planet hitAtmosphere = null;
+    /*
+    Apply the force towards given planet
+     */
+    public void applyPlanetForce(Planet planet) {
 
         double force;
-        double af;
-        double ax, ay;
+        double af, ax, ay;
 
-        for (int i=0; i<planets.size(); i++) {
+        force = planet.getForce(pos.x, pos.y);
+        af = angleTo(planet);
 
-            Planet planet = planets.get(i);
+        ax = force * Math.cos(af);
+        ay = force * Math.sin(af);
 
-            if (planet.containsPoint(pos)) {
-                setCrashed(true);
-                break;
+        accelerate(ax, ay);
+
+        if (planet.getPlanetType() == Planet.PlanetType.SUN && planet.pointWithinAtmosphere(pos.x, pos.y)) {
+
+            fuel += SUN_FUEL_RECHARGE;
+
+            if (fuel > MAX_FUEL) {
+                fuel = MAX_FUEL;
             }
-
-            force = planet.getForce(pos.x, pos.y);
-            af = angleTo(planet);
-
-            ax = force * Math.cos(af);
-            ay = force * Math.sin(af);
-
-            accelerate(ax, ay);
-
-            if (planet.getPlanetType() == Planet.PlanetType.SUN && planet.pointWithinAtmosphere(pos.x, pos.y)) {
-
-                fuel += SUN_FUEL_RECHARGE;
-
-                if (fuel > MAX_FUEL) {
-                    fuel = MAX_FUEL;
-                }
-
-                hitAtmosphere = planet;
-
-            }
-        }
-
-        // Ship is inside atmosphere of a planet
-        if (hitAtmosphere != null) {
-            //TODO
         }
     }
 
@@ -400,14 +409,41 @@ public class Ship extends GameObject {
      */
     public void drawBreadcrumbs(Canvas canvas) {
 
-        // Draw breadcrumbs
-        if (useBreadcrumbs) {
-            for (int i=0; i<breadcrumbs.size(); i++) {
-
-                Breadcrumb b = breadcrumbs.get(i);
-                b.draw(canvas);
-            }
+        if (!useBreadcrumbs) {
+            return;
         }
+
+        float N = 200.0f / BREADCRUMB_HISTORY;
+
+        int n = breadcrumbHistory.size();
+
+        int alpha = 0;
+
+        // Draw history
+        for (int i=0; i<n; i++) {
+
+            alpha = 200 - (int) (N * i);
+
+            drawBreadcrumbList(
+                    breadcrumbHistory.get(n-1-i),
+                    Color.argb(alpha, 230, 0, 0),
+                    canvas);
+        }
+
+        drawBreadcrumbList(breadcrumbs, Color.argb(255, 255, 0, 0), canvas);
+    }
+
+    public void drawBreadcrumbList(Vector<Breadcrumb> crumbs, int color, Canvas canvas) {
+
+        Paint crumbPaint = new Paint();
+
+        crumbPaint.setStrokeWidth(3);
+        crumbPaint.setColor(color);
+
+        for (int i=0; i<crumbs.size(); i++) {
+            crumbs.get(i).draw(canvas, crumbPaint);
+        }
+
     }
 
     /**

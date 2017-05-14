@@ -11,6 +11,7 @@ import android.graphics.Color;
 public class Galaxy extends StellarObject {
 
     static final float GALAXY_RADIUS = 250.0f;
+    private final float GALAXY_THRESHOLD = 0.5f * GALAXY_RADIUS;
 
     public Galaxy(float x, float y) {
         super(x,y);
@@ -25,9 +26,8 @@ public class Galaxy extends StellarObject {
         gp.setStrokeWidth(2);
         gp.setStyle(Paint.Style.STROKE);
 
-        canvas.drawCircle(pos.x, pos.y, radius, gp);
-        canvas.drawCircle(pos.x, pos.y, 0.5f * radius, gp);
-        
+        canvas.drawCircle(pos.x, pos.y, GALAXY_RADIUS, gp);
+        canvas.drawCircle(pos.x, pos.y, GALAXY_THRESHOLD, gp);
 
         canvas.drawLine(pos.x, pos.y - radius, pos.x, pos.y + radius, gp);
         canvas.drawLine(pos.x - radius, pos.y, pos.x + radius, pos.y, gp);
@@ -35,8 +35,6 @@ public class Galaxy extends StellarObject {
 
     boolean testShip(Ship s) {
 
-        float r = 0.5f * GALAXY_RADIUS;
-
-        return distanceSquared(s.getX(), s.getY()) < (r * r);
+        return distanceSquared(s.getX(), s.getY()) < (GALAXY_THRESHOLD * GALAXY_THRESHOLD);
     }
 }

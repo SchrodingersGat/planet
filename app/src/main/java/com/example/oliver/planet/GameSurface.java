@@ -78,17 +78,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         p = new Planet(500, 125, 10);
         p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
-        level.planets.add(p);
+        //level.planets.add(p);
 
-        p = new Planet(800, 500, 105);
+        p = new Planet(800, 500, 90);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
         p = new Planet(-4800, -800, 130);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
-        level.planets.add(p);
+        //level.planets.add(p);
 
-        p = new Planet(-1200, 750, 150);
+        p = new Planet(-1200, 750, 100);
         p.setPlanetType(Planet.PlanetType.SUN);
         p.setAtmosphere(500);
         level.planets.add(p);
@@ -108,6 +108,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         level.stars.add(s);
 
         level.endZone.setPos(0, 900);
+
+        WormholePair whp = new WormholePair(
+                new PointF(-1000, -1000),
+                new PointF( 1000,  1000)
+        );
+
+        level.wormholes.add(whp);
 
         reset();
     }
@@ -208,6 +215,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         else if (mapBeingDragged || shipBeingDragged) {
             // Don't move screen in these cases
         }
+        else if (stellarObjectBeingDragged != null) {
+            // Don't move screen if planet is being dragged
+        }
         else {
             double d = (mapOffset.x * mapOffset.x) + (mapOffset.y * mapOffset.y);
 
@@ -307,12 +317,31 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         canvas.translate(mapOffset.x, mapOffset.y);
         canvas.translate(-level.ship.pos.x, -level.ship.pos.y);
 
+        // Draw wormholes
+        for (int ii=0; ii<level.wormholes.size(); ii++) {
+            WormholePair wh = level.wormholes.get(ii);
+
+            if (itemOnScreen(wh.wormholeA, Wormhole.WORMHOLE_RADIUS)) {
+                wh.wormholeA.draw(canvas);
+            }
+            else {
+                arrows.add(new OffScreenArrow(wh.wormholeA.getX(), wh.wormholeA.getY(), Color.WHITE));
+            }
+
+            if (itemOnScreen(wh.wormholeB, Wormhole.WORMHOLE_RADIUS)) {
+                wh.wormholeB.draw(canvas);
+            }
+            else {
+                arrows.add(new OffScreenArrow(wh.wormholeB.getX(), wh.wormholeB.getY(), Color.WHITE));
+            }
+        }
+
         // Draw each planet
-        for (int ii=0; ii<level.planets.size(); ii++) {
-            Planet p = level.planets.get(ii);
+        for (int jj=0; jj<level.planets.size(); jj++) {
+            Planet p = level.planets.get(jj);
 
             if (itemOnScreen(p, p.getTotalRadius())) {
-                level.planets.get(ii).draw(canvas);
+                p.draw(canvas);
             }
             else {
                 arrows.add(new OffScreenArrow(p.getX(), p.getY(), Color.GREEN));
@@ -320,12 +349,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         // Draw each star
-        for (int jj=0; jj<level.stars.size(); jj++) {
+        for (int kk=0; kk<level.stars.size(); kk++) {
 
-            Star s = level.stars.get(jj);
+            Star s = level.stars.get(kk);
 
             if (itemOnScreen(s, s.getRadius())) {
-                level.stars.get(jj).draw(canvas);
+                s.draw(canvas);
             }
             else
             {
@@ -354,6 +383,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         else
         {
             arrows.add(new OffScreenArrow(level.ship.getX(), level.ship.getY(), Color.RED));
+        }
+
+        // Draw the 'release point' of the ship
+        if (level.ship.releasePoint != null &&
+            !level.ship.isReleased()) {
+            PointF rp = level.ship.releasePoint;
+
+            canvas.drawCircle(-rp.x, -rp.y, 20, L);
         }
 
         level.ship.drawBreadcrumbs(canvas);
@@ -608,7 +645,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = event.getX();
         float y = event.getY();
 
-        PointF worldPos = toGrid(getMapCoordsFromScreenPos(x, y), 10);
+        PointF worldPos = toGrid(getMapCoordsFromScreenPos(x, y), 20);
 
         float dShip = level.ship.distanceTo(worldPos.x, worldPos.y);
 

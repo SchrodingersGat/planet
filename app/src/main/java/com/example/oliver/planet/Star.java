@@ -33,6 +33,13 @@ public class Star extends StellarObject {
 
     public void setCollected(boolean status) { collected = status; }
 
+    public boolean testCollection(float x, float y) {
+
+        float r = 1.5f * radius;
+
+        return distanceSquared(x, y) < (r * r);
+    }
+
     public void draw(Canvas canvas) {
         Paint p = new Paint();
 
