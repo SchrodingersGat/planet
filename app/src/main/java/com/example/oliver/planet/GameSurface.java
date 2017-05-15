@@ -308,25 +308,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         return true;
     }
 
-    private boolean testPlayPauseButtonHit(float x, float y) {
-        PointF bPos = getPauseButtonLocation();
+    private boolean testPositionHit(PointF pos, float x, float y, float r) {
 
-        float dx = x - bPos.x;
-        float dy = y - bPos.y;
+        float dx = pos.x - x;
+        float dy = pos.y - y;
 
         float ds = (dx * dx) + (dy * dy);
 
-        return ds < (BUTTON_SIZE * BUTTON_SIZE);
-    }
-
-    private boolean canShowPauseButton() {
-
-        return !m_paused;
-    }
-
-    private boolean canShowPlayButton() {
-
-        return m_paused;
+        return ds < (r * r);
     }
 
     private PointF getPauseButtonLocation() {
@@ -335,6 +324,24 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 WIDTH / 2,
                 HEIGHT - BUTTON_SIZE
         );
+    }
+
+    private PointF getBackButtonLocation() {
+
+        PointF p = getPauseButtonLocation();
+
+        p.offset(-0.3f * SCREEN_MIN, 0);
+
+        return p;
+    }
+
+    private PointF getResetButtonLocation() {
+
+        PointF p = getPauseButtonLocation();
+
+        p.offset(0.3f * SCREEN_MIN, 0);
+
+        return p;
     }
 
     private void drawMenu(Canvas canvas) {
@@ -355,7 +362,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         // Draw pause button
 
-        if (canShowPauseButton()) {
+        if (!m_paused) {
+
+            // Draw Pause Button
             canvas.drawRect(
                     pb.x - BUTTON_SIZE / 2,
                     pb.y - BUTTON_SIZE / 2,
@@ -370,7 +379,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     pb.y + BUTTON_SIZE / 2,
                     pp);
         }
-        else if (canShowPlayButton()) {
+        else {
+
+            // Draw Play Button
             Path p = new Path();
             p.moveTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE / 2);
             p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y + BUTTON_SIZE / 2);
@@ -378,6 +389,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE /2 );
 
             canvas.drawPath(p, pp);
+
+            // Draw Reset Button
+            PointF rst = getResetButtonLocation();
+
+            canvas.drawCircle(rst.x, rst.y, BUTTON_SIZE / 2, pp);
         }
     }
 
@@ -781,8 +797,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 // Test for menu hit
                 if (canShowMenu()) {
-                    if (testPlayPauseButtonHit(x, y)) {
+
+                    // Play / Pause Button
+                    if (testPositionHit(getPauseButtonLocation(), x, y, BUTTON_SIZE)) {
                         setPaused(!m_paused);
+                    }
+                    else if (m_paused && testPositionHit(getBackButtonLocation(), x, y, BUTTON_SIZE)) {
+                        //TODO
+                    }
+                    else if (m_paused && testPositionHit(getResetButtonLocation(), x, y, BUTTON_SIZE)) {
+                        setPaused(false);
+                        reset();
                     }
                 }
 
