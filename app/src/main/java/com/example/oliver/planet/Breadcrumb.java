@@ -15,12 +15,12 @@ public class Breadcrumb {
     public PointF position = new PointF(0, 0);
     public PointF vector = new PointF(0, 0);
 
-    static final float BREADCRUMB_DISTANCE = 50.0f;
+    static final float BREADCRUMB_DISTANCE = 75.0f;
 
     public Breadcrumb(PointF pos, double angle, double thrust) {
         position.set(pos.x, pos.y);
 
-        thrust *= BREADCRUMB_DISTANCE / Ship.MAX_THRUST;
+        thrust *= 0.9 * BREADCRUMB_DISTANCE / Ship.MAX_THRUST;
 
         double dx = position.x - thrust * Math.cos(angle);
         double dy = position.y - thrust * Math.sin(angle);
