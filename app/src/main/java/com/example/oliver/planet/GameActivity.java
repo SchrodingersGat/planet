@@ -36,8 +36,7 @@ public class GameActivity extends Activity {
     public void onResume() {
 
         if (game != null) {
-            //game.gameThread.setRunning(true);
-            //game.gameThread.start();
+            game.setPaused(false);
         }
         super.onResume();
 
@@ -47,7 +46,7 @@ public class GameActivity extends Activity {
     @Override
     public void onPause() {
         if (game != null) {
-            //game.gameThread.setRunning(false);
+            game.setPaused(true);
         }
 
         super.onPause();

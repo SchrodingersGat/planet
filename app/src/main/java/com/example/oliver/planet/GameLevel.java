@@ -9,7 +9,17 @@ import java.util.Vector;
 
 public class GameLevel {
 
-    static final float LEVEL_BOUNDS = 10000;
+    /*
+    Game States
+    */
+    static final int STATE_INIT = 0;
+    static final int STATE_RUNNING = 1;
+    static final int STATE_PAUSED = 2;
+    static final int STATE_CRASHED = 3;
+    static final int STATE_OUT_OF_BOUNDS = 5;
+    static final int STATE_WIN = 10;
+
+    static final float LEVEL_BOUNDS = 5000;
 
     public Vector<WormholePair> wormholes;
     public Vector<Planet> planets;

@@ -426,7 +426,7 @@ public class Ship extends GameObject {
 
             drawBreadcrumbList(
                     breadcrumbHistory.get(n-1-i),
-                    Color.argb(alpha, 230, 0, 0),
+                    Color.argb(alpha, 230, 200, 0),
                     canvas);
         }
 

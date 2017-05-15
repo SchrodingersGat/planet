@@ -6,13 +6,14 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.content.Context;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.view.MotionEvent;
+import android.graphics.Path;
 import android.util.Log;
 
 import java.util.Vector;
@@ -22,6 +23,11 @@ import java.util.Vector;
  */
 
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
+
+    /*
+    Graphic item constants
+     */
+    private final float BUTTON_SIZE = 75;
 
     private final float EPSILOM = 0.0001f;
 
@@ -48,6 +54,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private double CORNER_ANGLE = 0;
 
+    private boolean m_paused = false;
+
     // Keeping track of touch positions
     private PointF touchLast = new PointF();
 
@@ -65,9 +73,18 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     public GameSurface(Context context) {
         super(context);
 
+        Log.i("surface", "created");
+
         this.setFocusable(true);
 
         this.getHolder().addCallback(this);
+
+        // Create the thread here
+        // it is started in 'surfaceCreated()'
+
+        gameThread = new GameThread(this, this.getHolder(), context, new Handler());
+
+        setFocusable(true);
 
         level = new GameLevel();
 
@@ -167,6 +184,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     public void update() {
 
+        if (m_paused) {
+            return;
+        }
+
         // Update game timers
         updateTimers();
 
@@ -178,7 +199,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             level.ship.turnEngineOff();
         }
 
-        // Update game mechanics
         level.update();
 
         // Check if ship has left map
@@ -268,7 +288,100 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    public void drawFuelBar(Canvas canvas) {
+    /*
+    Determine if the game menu should be displayed
+     */
+    private boolean canShowMenu() {
+
+        if (m_paused) {
+            return true;
+        }
+
+        if (!level.ship.isReleased()) {
+            return false;
+        }
+
+        if (mapBeingDragged || shipBeingDragged || stellarObjectBeingDragged != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean testPlayPauseButtonHit(float x, float y) {
+        PointF bPos = getPauseButtonLocation();
+
+        float dx = x - bPos.x;
+        float dy = y - bPos.y;
+
+        float ds = (dx * dx) + (dy * dy);
+
+        return ds < (BUTTON_SIZE * BUTTON_SIZE);
+    }
+
+    private boolean canShowPauseButton() {
+
+        return !m_paused;
+    }
+
+    private boolean canShowPlayButton() {
+
+        return m_paused;
+    }
+
+    private PointF getPauseButtonLocation() {
+
+        return new PointF(
+                WIDTH / 2,
+                HEIGHT - BUTTON_SIZE
+        );
+    }
+
+    private void drawMenu(Canvas canvas) {
+
+        Paint pp = new Paint();
+
+        if (!canShowMenu()) {
+            return;
+        }
+
+        if (m_paused) {
+            canvas.drawColor(Color.argb(100, 0, 0, 0));
+        }
+
+        pp.setColor(Color.argb(150, 175, 230, 175));
+
+        PointF pb = getPauseButtonLocation();
+
+        // Draw pause button
+
+        if (canShowPauseButton()) {
+            canvas.drawRect(
+                    pb.x - BUTTON_SIZE / 2,
+                    pb.y - BUTTON_SIZE / 2,
+                    pb.x - BUTTON_SIZE / 6,
+                    pb.y + BUTTON_SIZE / 2,
+                    pp);
+
+            canvas.drawRect(
+                    pb.x + BUTTON_SIZE / 6,
+                    pb.y - BUTTON_SIZE / 2,
+                    pb.x + BUTTON_SIZE / 2,
+                    pb.y + BUTTON_SIZE / 2,
+                    pp);
+        }
+        else if (canShowPlayButton()) {
+            Path p = new Path();
+            p.moveTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE / 2);
+            p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y + BUTTON_SIZE / 2);
+            p.lineTo(pb.x + BUTTON_SIZE / 2, pb.y);
+            p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE /2 );
+
+            canvas.drawPath(p, pp);
+        }
+    }
+
+    private void drawFuelBar(Canvas canvas) {
 
         Paint fbp = new Paint();
 
@@ -401,6 +514,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         drawArrows(canvas);
 
         drawFuelBar(canvas);
+
+        drawMenu(canvas);
     }
 
     private void drawSelector(Canvas canvas) {
@@ -572,13 +687,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        this.gameThread = new GameThread(this, holder);
         this.gameThread.setRunning(true);
         this.gameThread.start();
 
         updateScreenSize();
 
-        //Log.i("surface", "created");
+        Log.i("surface", "created");
     }
 
     @Override
@@ -586,15 +700,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         updateScreenSize();
 
-        //Log.i("surface", "changed");
+        Log.i("surface", "changed");
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        boolean retry= true;
+        boolean retry = true;
+
+        gameThread.setRunning(false);
+
         while(retry) {
             try {
-                this.gameThread.setRunning(false);
 
                 // Parent thread must wait until the end of GameThread.
                 this.gameThread.join();
@@ -603,10 +719,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             catch(InterruptedException e)  {
                 e.printStackTrace();
             }
-            retry= true;
         }
 
-        //Log.i("surface", "destroyed");
+        Log.i("surface", "destroyed");
     }
 
     public PointF getMapCoordsFromScreenPos(float xScreen, float yScreen) {
@@ -659,9 +774,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     break;
                 }
 
-                if (level.ship.distanceTo(worldPos.x, worldPos.y) < Ship.SELECTION_RADIUS_OUTER) {
+                if (!m_paused && level.ship.distanceTo(worldPos.x, worldPos.y) < Ship.SELECTION_RADIUS_OUTER) {
                     startDraggingShip();
                     break;
+                }
+
+                // Test for menu hit
+                if (canShowMenu()) {
+                    if (testPlayPauseButtonHit(x, y)) {
+                        setPaused(!m_paused);
+                    }
                 }
 
                 break;
@@ -685,17 +807,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 if (level.ship.isEngineOn()) {
                     level.ship.turnEngineOff();
                 }
-
-                else if (stellarObjectBeingDragged == null &&
-                    !mapBeingDragged &&
-                    !shipBeingDragged) {
-                    reset();
-                    resetMapOffset();
-                }
-
                 else if (shipBeingDragged && !level.ship.isReleased()) {
 
                     if (dShip > Ship.SELECTION_RADIUS_OUTER) {
+                        Log.i("surface", "releasing ship");
                         level.ship.release(new PointF(
                                 level.ship.getX() - worldPos.x,
                                 level.ship.getY() - worldPos.y));
@@ -709,6 +824,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_OUTSIDE:
                 stellarObjectBeingDragged = null;
+                mapBeingDragged = false;
+                stopDraggingShip();
                 break;
             default:
                 break;
@@ -739,5 +856,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private void resetMapOffset() {
         mapOffset.set(0, 0);
+    }
+
+    public void setPaused(boolean b) {
+        m_paused = b;
+
+        if (b) {
+            Log.i("surface", "set pause true");
+        } else {
+            Log.i("surface", "set pause false");
+        }
     }
 }

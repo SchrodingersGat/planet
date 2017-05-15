@@ -2,6 +2,9 @@ package com.example.oliver.planet;
 
 import android.view.SurfaceHolder;
 import android.graphics.Canvas;
+import android.os.Handler;
+import android.content.Context;
+import android.util.Log;
 
 /**
  * Created by Oliver on 5/3/2017.
@@ -9,36 +12,82 @@ import android.graphics.Canvas;
 
 public class GameThread extends Thread {
 
-    private boolean running;
-    private GameSurface gameSurface;
-    private SurfaceHolder surfaceHolder;
+    /*
+    Thread state variables
+     */
+    private boolean m_running = false;
+    private final Object m_runLock = new Object();
 
-    final long FRAME_TIME_MS = 10;
+    /*
+    Thread variables
+     */
+    private GameSurface m_gameSurface;
+    private SurfaceHolder m_surfaceHolder;
+    private Context m_context;
+    private Handler m_handler;
 
-    public GameThread(GameSurface surface, SurfaceHolder holder) {
-        this.gameSurface = surface;
-        this.surfaceHolder = holder;
+    final private long FRAME_TIME_MS = 10;
+    private long m_lastTime;
+
+    public GameThread(
+            GameSurface surface,
+            SurfaceHolder holder,
+            Context context,
+            Handler handler) {
+        this.m_gameSurface = surface;
+        this.m_surfaceHolder = holder;
+        this.m_context = context;
+        this.m_handler = handler;
+    }
+
+    public void setRunning(boolean b) {
+        if (b) {
+            Log.i("thread", "set running = true");
+        } else {
+            Log.i("thread", "set running = false");
+        }
+        synchronized(m_runLock) {
+            m_running = b;
+        }
     }
 
     @Override
     public void run() {
-        long now = 0;
-        long waitTime = 0;
-        long startTime = 0;
+        long delta = 0;
 
         Canvas canvas = null;
 
-        while (running) {
+        Log.i("thread", "starting");
 
-            canvas = null;
-            startTime = System.nanoTime();
+        m_lastTime = System.currentTimeMillis();
+
+        while (m_running) {
+
+            delta = System.currentTimeMillis() - m_lastTime;
+
+            if (delta < FRAME_TIME_MS) {
+                // Delay for 1ms at a time
+                try {
+                    this.sleep(1);
+                }
+                catch (InterruptedException e) {
+
+                }
+
+                continue;
+            }
 
             try {
-                canvas = this.surfaceHolder.lockCanvas();
+                canvas = this.m_surfaceHolder.lockCanvas();
 
-                synchronized (canvas) {
-                    this.gameSurface.update();
-                    this.gameSurface.draw(canvas);
+                synchronized (m_runLock) {
+
+                    synchronized (canvas) {
+
+                        this.m_gameSurface.update();
+
+                        this.m_gameSurface.draw(canvas);
+                    }
                 }
             }
             catch (Exception e) {
@@ -47,31 +96,13 @@ public class GameThread extends Thread {
             finally {
                 if (canvas != null) {
                     // Unlock the canvas
-                    this.surfaceHolder.unlockCanvasAndPost(canvas);
+                    this.m_surfaceHolder.unlockCanvasAndPost(canvas);
                 }
             }
 
-            now = System.nanoTime();
-
-            waitTime = (now - startTime) / 1000000;
-
-            waitTime = FRAME_TIME_MS - waitTime;
-
-            // Minimum wait time
-            if (waitTime < 5) {
-                waitTime = 5;
-            }
-
-            try {
-                this.sleep(waitTime);
-            }
-            catch (InterruptedException e) {
-
-            }
+            m_lastTime = System.currentTimeMillis();
         }
-    }
 
-    public void setRunning(boolean running) {
-        this.running = running;
+        Log.i("thread", "finished");
     }
 }
