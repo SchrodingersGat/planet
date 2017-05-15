@@ -8,17 +8,16 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Color;
 
-public class Galaxy extends StellarObject {
+public class Galaxy extends Planet {
 
     static final float GALAXY_RADIUS = 250.0f;
     private final float GALAXY_THRESHOLD = 0.5f * GALAXY_RADIUS;
 
     public Galaxy(float x, float y) {
-        super(x,y);
-        setRadius(GALAXY_RADIUS);
+        super(x, y, GALAXY_RADIUS);
     }
 
-    void draw(Canvas canvas) {
+    public void draw(Canvas canvas) {
         Paint gp = new Paint();
 
         gp.setColor(Color.argb(200, 200, 250, 250));
@@ -36,5 +35,14 @@ public class Galaxy extends StellarObject {
     boolean testShip(Ship s) {
 
         return distanceSquared(s.getX(), s.getY()) < (GALAXY_THRESHOLD * GALAXY_THRESHOLD);
+    }
+
+    @Override
+    public double getForce(float x, float y) {
+
+        double force = super.getForce(x, y);
+
+        // End-zone galaxy exerts only a weak force
+        return force * 0.15;
     }
 }

@@ -42,9 +42,9 @@ public class GameThread extends Thread {
 
     public void setRunning(boolean b) {
         if (b) {
-            Log.i("thread", "set running = true");
+            //Log.i("thread", "set running = true");
         } else {
-            Log.i("thread", "set running = false");
+            //Log.i("thread", "set running = false");
         }
         synchronized(m_runLock) {
             m_running = b;
@@ -57,7 +57,7 @@ public class GameThread extends Thread {
 
         Canvas canvas = null;
 
-        Log.i("thread", "starting");
+        //Log.i("thread", "starting");
 
         m_lastTime = System.currentTimeMillis();
 
@@ -103,6 +103,6 @@ public class GameThread extends Thread {
             m_lastTime = System.currentTimeMillis();
         }
 
-        Log.i("thread", "finished");
+        //Log.i("thread", "finished");
     }
 }

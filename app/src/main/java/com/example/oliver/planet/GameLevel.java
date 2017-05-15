@@ -80,6 +80,9 @@ public class GameLevel {
                 }
             }
 
+            // Accelerate towards the end zone
+            ship.applyPlanetForce(endZone);
+
             if (!ship.hasCrashed()) {
 
                 // Test each star for hit

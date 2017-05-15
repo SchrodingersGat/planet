@@ -73,7 +73,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     public GameSurface(Context context) {
         super(context);
 
-        Log.i("surface", "created");
+        //Log.i("surface", "created");
 
         this.setFocusable(true);
 
@@ -353,7 +353,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         if (m_paused) {
-            canvas.drawColor(Color.argb(100, 0, 0, 0));
+            canvas.drawColor(Color.argb(175, 0, 0, 0));
         }
 
         pp.setColor(Color.argb(150, 175, 230, 175));
@@ -708,7 +708,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         updateScreenSize();
 
-        Log.i("surface", "created");
+        //Log.i("surface", "created");
     }
 
     @Override
@@ -716,7 +716,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         updateScreenSize();
 
-        Log.i("surface", "changed");
+        //Log.i("surface", "changed");
     }
 
     @Override
@@ -737,7 +737,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        Log.i("surface", "destroyed");
+        //Log.i("surface", "destroyed");
     }
 
     public PointF getMapCoordsFromScreenPos(float xScreen, float yScreen) {
@@ -835,7 +835,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 else if (shipBeingDragged && !level.ship.isReleased()) {
 
                     if (dShip > Ship.SELECTION_RADIUS_OUTER) {
-                        Log.i("surface", "releasing ship");
+                        //Log.i("surface", "releasing ship");
                         level.ship.release(new PointF(
                                 level.ship.getX() - worldPos.x,
                                 level.ship.getY() - worldPos.y));
@@ -887,9 +887,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         m_paused = b;
 
         if (b) {
-            Log.i("surface", "set pause true");
+            //Log.i("surface", "set pause true");
         } else {
-            Log.i("surface", "set pause false");
+            //Log.i("surface", "set pause false");
         }
     }
 }

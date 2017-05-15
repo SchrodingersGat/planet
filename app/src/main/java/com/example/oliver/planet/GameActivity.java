@@ -29,7 +29,7 @@ public class GameActivity extends Activity {
         game = new GameSurface(this);
         this.setContentView(game);
 
-        Log.i("activity", "created");
+        //Log.i("activity", "created");
     }
 
     @Override
@@ -40,7 +40,7 @@ public class GameActivity extends Activity {
         }
         super.onResume();
 
-        Log.i("activity", "resume");
+        //Log.i("activity", "resume");
     }
 
     @Override
@@ -51,7 +51,7 @@ public class GameActivity extends Activity {
 
         super.onPause();
 
-        Log.i("activity", "pause");
+        //Log.i("activity", "pause");
     }
 
 }
