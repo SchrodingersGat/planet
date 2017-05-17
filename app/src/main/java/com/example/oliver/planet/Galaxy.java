@@ -24,10 +24,11 @@ public class Galaxy extends Planet {
 
     public Galaxy(float x, float y) {
         super(x, y, GALAXY_RADIUS);
-
+        setPlanetType(PlanetType.GALAXY);
         setupPainters();
     }
 
+    @Override
     public void draw(Canvas canvas) {
 
         canvas.drawCircle(pos.x, pos.y, GALAXY_RADIUS, pGalaxy);

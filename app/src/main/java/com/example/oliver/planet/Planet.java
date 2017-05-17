@@ -17,7 +17,11 @@ public class Planet extends StellarObject {
         SUN,
         BLACK_HOLE,
         REPULSAR,
-        MOON
+
+        // Special cases
+        MOON,
+        WORMHOLE,
+        GALAXY
     };
 
     private PlanetType planetType = PlanetType.PLANET;
@@ -31,7 +35,7 @@ public class Planet extends StellarObject {
     }
 
     // Acceleration constant
-    private final float G = 500.0f;
+    private final float G = 750.0f;
 
     /* Painters */
     private Paint pPlanet;
@@ -45,6 +49,12 @@ public class Planet extends StellarObject {
         if (pAtmosphere == null) {
             pAtmosphere = new Paint();
         }
+    }
+
+    /* Default constructor */
+    public Planet() {
+        pos.set(0, 0);
+        radius = MIN_RADIUS;
     }
 
     public Planet(float x, float y, float r) {
@@ -121,6 +131,9 @@ public class Planet extends StellarObject {
             case BLACK_HOLE:
                 pPlanet.setColor(Color.BLUE);
                 break;
+            //case MOON:
+            //    pPlanet.setColor(Color.GRAY);
+            //    break;
         }
     }
 

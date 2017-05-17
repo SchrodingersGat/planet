@@ -137,9 +137,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(-450, -250, 90);
         level.planets.add(p);
 
+        Moon m = new Moon(p, 30, -Math.PI/4, 150, 0.02f);
+        level.moons.add(m);
+
+
         p = new Planet(500, 125, 10);
-        p.setPlanetType(Planet.PlanetType.BLACK_HOLE);
-        //level.planets.add(p);
+        level.planets.add(p);
 
         p = new Planet(800, 500, 90);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
@@ -482,6 +485,19 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             else
             {
                 arrows.add(new OffScreenArrow(s.getX(), s.getY(), Color.YELLOW));
+            }
+        }
+
+        // Draw each moon
+        for (int mm=0; mm<level.moons.size(); mm++) {
+            Moon m = level.moons.get(mm);
+
+            if (itemOnScreen(m, m.getRadius())) {
+                //m.draw(canvas);
+            }
+            else
+            {
+                arrows.add(new OffScreenArrow(m.getX(), m.getY(), Color.GRAY));
             }
         }
 

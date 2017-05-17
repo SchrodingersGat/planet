@@ -35,9 +35,8 @@ public class Wormhole extends Planet {
 
     public Wormhole(float x, float y) {
         super(x, y, WORMHOLE_RADIUS);
-
         setupPainters();
-
+        setPlanetType(PlanetType.WORMHOLE);
         reset();
     }
 
@@ -54,7 +53,6 @@ public class Wormhole extends Planet {
 
         s.setPos(pos.x + dx, pos.y + dy);
     }
-
 
     public boolean isShipInside(Ship s) {
 

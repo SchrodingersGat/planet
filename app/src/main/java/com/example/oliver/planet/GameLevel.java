@@ -23,6 +23,7 @@ public class GameLevel {
 
     public Vector<WormholePair> wormholes;
     public Vector<Planet> planets;
+    public Vector<Moon> moons;
     public Vector<Star> stars;
 
     public Galaxy endZone;
@@ -35,6 +36,7 @@ public class GameLevel {
         planets = new Vector<Planet>();
         stars = new Vector<Star>();
         wormholes = new Vector<WormholePair>();
+        moons = new Vector<Moon>();
 
         ship = new Ship();
 
@@ -59,6 +61,7 @@ public class GameLevel {
     public void update() {
 
         Planet p;
+        Moon m;
 
         if (ship.isReleased() && !ship.hasCrashed()) {
 
@@ -76,6 +79,17 @@ public class GameLevel {
                 ship.applyPlanetForce(p);
 
                 if (p.containsPoint(ship.getPos())) {
+                    ship.setCrashed(true);
+                }
+            }
+
+            // Update each moon
+            for (int i=0; i<moons.size(); i++) {
+                m = moons.get(i);
+                m.updateOrbit();
+                ship.applyPlanetForce(m);
+
+                if (m.containsPoint(ship.getPos())) {
                     ship.setCrashed(true);
                 }
             }
