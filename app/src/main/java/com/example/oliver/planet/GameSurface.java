@@ -96,7 +96,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         pMenu = new Paint();
         pMenu.setARGB(150, 175, 230, 175);
-        pMenu.setStyle(Paint.Style.FILL);
+        pMenu.setStyle(Paint.Style.FILL_AND_STROKE);
 
         pFuelBarInterior = new Paint();
         pFuelBarInterior.setStyle(Paint.Style.FILL);
@@ -137,7 +137,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(-450, -250, 90);
         level.planets.add(p);
 
-        Moon m = new Moon(p, 30, -Math.PI/4, 150, 0.02f);
+        Moon m = new Moon(p, 45, -Math.PI/4, 650, 0.01f);
         level.moons.add(m);
 
 
@@ -492,7 +492,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         for (int mm=0; mm<level.moons.size(); mm++) {
             Moon m = level.moons.get(mm);
 
+            canvas.drawLine(m.getX(), m.getY(), m.getParentPlanet().getX(), m.getParentPlanet().getY(), pMenu);
+
             if (itemOnScreen(m, m.getRadius())) {
+                canvas.drawCircle(m.getX(), m.getY(), m.getRadius(), pMenu);
                 //m.draw(canvas);
             }
             else

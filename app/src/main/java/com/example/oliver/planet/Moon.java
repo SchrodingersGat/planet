@@ -9,14 +9,15 @@ public class Moon extends Planet {
     static final float MIN_ORBIT_RADIUS = 250;
     static final float MAX_ORBIT_RADIUS = 2500;
 
-    static final float MIN_ORBIT_SPEED = 0.001f;
-    static final float MAX_ORBIT_SPEED = 0.05f;
+    static final float MIN_ORBIT_SPEED = 0.0001f;
+    static final float MAX_ORBIT_SPEED = 0.0250f;
 
     // Planet that the moon orbits
     private Planet parentPlanet;
     private float orbitRadius = 250.0f;
     private float orbitSpeed = 0.025f;
     private double orbitAngle = 0;
+    private double startingAngle = 0.0f;
 
     public Moon(Planet planet, float mRadius, double angle, float oRadius, float oSpeed) {
         parentPlanet = planet;
@@ -30,6 +31,7 @@ public class Moon extends Planet {
         }
 
         orbitAngle = angle;
+        startingAngle = angle;
 
         if (oRadius < MIN_ORBIT_RADIUS) {
             oRadius = MIN_ORBIT_RADIUS;
@@ -58,19 +60,14 @@ public class Moon extends Planet {
         }
 
         orbitSpeed = oSpeed;
-
-        // Calculate the initial position of the moon
-        if (parentPlanet != null) {
-
-            double x = parentPlanet.getX() + orbitRadius * Math.cos(orbitAngle);
-            double y = parentPlanet.getY() + orbitRadius * Math.sin(orbitAngle);
-
-        }
-        else {
-            setPos(0, 0);
-        }
-
         setRadius(mRadius);
+
+        updateOrbit();
+    }
+
+    public void resetOrbit() {
+        orbitAngle = startingAngle;
+        updateOrbit();
     }
 
     public Planet getParentPlanet() {
@@ -87,8 +84,14 @@ public class Moon extends Planet {
 
     public void updateOrbit() {
         if (parentPlanet == null) {
+            setPos(0, 0);
             return;
         }
+
+        double x = parentPlanet.getX() + orbitRadius * Math.cos(orbitAngle);
+        double y = parentPlanet.getY() + orbitRadius * Math.sin(orbitAngle);
+
+        pos.set((float) x, (float) y);
 
         orbitAngle += orbitSpeed;
 
@@ -98,12 +101,6 @@ public class Moon extends Planet {
         else if (orbitAngle < -Math.PI) {
             orbitAngle += 2 * Math.PI;
         }
-
-        double x = parentPlanet.getX() + orbitRadius * Math.cos(orbitAngle);
-        double y = parentPlanet.getY() + orbitRadius * Math.sin(orbitAngle);
-
-        pos.set(parentPlanet.getX() + (float) x,
-                parentPlanet.getY() + (float) y);
     }
 
 }

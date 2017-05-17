@@ -55,6 +55,10 @@ public class GameLevel {
             stars.get(i).setCollected(false);
         }
 
+        for (int i=0; i<moons.size(); i++) {
+            moons.get(i).resetOrbit();
+        }
+
         ship.fuel = Ship.MAX_FUEL;
     }
 
