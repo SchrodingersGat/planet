@@ -70,8 +70,52 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private float lookAwaySpring = 0.0f;
     private final int LOOK_AWAY_TIMER_RESET = 50;
 
+    /* Painter Objects */
+    private Paint pSelectorFill;
+    private Paint pSelectorOutline;
+    private Paint pArrow;
+    private Paint pMenu;
+    private Paint pFuelBarInterior;
+    private Paint pFuelBarOutline;
+    private Paint pFuelBarBlack;
+
+    private void setupPainters() {
+
+        // Ship selector painters
+        pSelectorFill = new Paint();
+        pSelectorFill.setARGB(255, 115, 200, 230);
+        pSelectorFill.setStyle(Paint.Style.FILL);
+
+        pSelectorOutline = new Paint();
+        pSelectorOutline.setARGB(255, 115, 200, 230);
+        pSelectorOutline.setStrokeWidth(5);
+        pSelectorOutline.setStyle(Paint.Style.STROKE);
+
+        pArrow = new Paint();
+        pArrow.setStyle(Paint.Style.FILL);
+
+        pMenu = new Paint();
+        pMenu.setARGB(150, 175, 230, 175);
+        pMenu.setStyle(Paint.Style.FILL);
+
+        pFuelBarInterior = new Paint();
+        pFuelBarInterior.setStyle(Paint.Style.FILL);
+        pFuelBarInterior.setARGB(200, 50, 250, 50);
+
+        pFuelBarBlack = new Paint();
+        pFuelBarBlack.setStyle(Paint.Style.FILL);
+        pFuelBarBlack.setARGB(150, 0, 0, 0);
+
+        pFuelBarOutline = new Paint();
+        pFuelBarOutline.setStyle(Paint.Style.STROKE);
+        pFuelBarOutline.setARGB(250, 50, 250, 50);
+        pFuelBarOutline.setStrokeWidth(5);
+    }
+
     public GameSurface(Context context) {
         super(context);
+
+        setupPainters();
 
         //Log.i("surface", "created");
 
@@ -254,41 +298,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*
-    Draw a grid overlay on the screen
-    The grid is in 'world' coordinates
-    (moves with the screen)
-     */
-    public void drawGrid(Canvas canvas) {
-
-        final float GRID = 100;
-
-        // Calculate grid offset
-        PointF loc = getMapCoordsFromScreenPos(0, 0);
-
-        loc.x -= GRID * (int) (loc.x / GRID);
-        loc.y -= GRID * (int) (loc.y / GRID);
-
-        int nx = (int) (WIDTH / GRID + 0.5);
-        int ny = (int) (HEIGHT / GRID + 0.5);
-
-        Paint gp = new Paint();
-        gp.setARGB(50, 100, 200, 225);
-        gp.setStrokeWidth(3.5f);
-
-        float x, y;
-
-        for (int i=-1; i<=nx; i++) {
-            x = i * GRID - loc.x;
-            canvas.drawLine(x, 0, x, HEIGHT, gp);
-        }
-
-        for (int j=-1; j<=ny; j++) {
-            y = j * GRID - loc.y;
-            canvas.drawLine(0, y, WIDTH, y, gp);
-        }
-    }
-
-    /*
     Determine if the game menu should be displayed
      */
     private boolean canShowMenu() {
@@ -346,17 +355,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private void drawMenu(Canvas canvas) {
 
-        Paint pp = new Paint();
-
         if (!canShowMenu()) {
             return;
         }
 
         if (m_paused) {
-            canvas.drawColor(Color.argb(175, 0, 0, 0));
+            canvas.drawColor(Color.argb(100, 0, 0, 0));
         }
-
-        pp.setColor(Color.argb(150, 175, 230, 175));
 
         PointF pb = getPauseButtonLocation();
 
@@ -370,14 +375,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     pb.y - BUTTON_SIZE / 2,
                     pb.x - BUTTON_SIZE / 6,
                     pb.y + BUTTON_SIZE / 2,
-                    pp);
+                    pMenu);
 
             canvas.drawRect(
                     pb.x + BUTTON_SIZE / 6,
                     pb.y - BUTTON_SIZE / 2,
                     pb.x + BUTTON_SIZE / 2,
                     pb.y + BUTTON_SIZE / 2,
-                    pp);
+                    pMenu);
         }
         else {
 
@@ -388,18 +393,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             p.lineTo(pb.x + BUTTON_SIZE / 2, pb.y);
             p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE /2 );
 
-            canvas.drawPath(p, pp);
+            canvas.drawPath(p, pMenu);
 
             // Draw Reset Button
             PointF rst = getResetButtonLocation();
 
-            canvas.drawCircle(rst.x, rst.y, BUTTON_SIZE / 2, pp);
+            canvas.drawCircle(rst.x, rst.y, BUTTON_SIZE / 2, pMenu);
         }
     }
 
     private void drawFuelBar(Canvas canvas) {
-
-        Paint fbp = new Paint();
 
         float BAR_H = 25;
         float BAR_W = 250;
@@ -408,23 +411,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // Fuel ratio
         float FR =  level.ship.getFuelRatio();
 
-        fbp.setARGB(150, (int) (255 * (1-FR)), (int) (255 * (FR)), 0);
-
-        fbp.setStyle(Paint.Style.FILL);
-
-        canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W * FR, BAR_O + BAR_H, fbp);
+        // Draw the fuel
+        canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W * FR, BAR_O + BAR_H, pFuelBarInterior);
 
         // Draw remaining portion of fuel bar as black
-        fbp.setARGB(150, 0, 0, 0);
-
-        canvas.drawRect(BAR_O + BAR_W * FR, BAR_O, BAR_O + BAR_W, BAR_O + BAR_H, fbp);
-
-        fbp.setColor(Color.GREEN);
-        fbp.setStrokeWidth(5);
-        fbp.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(BAR_O + BAR_W * FR, BAR_O, BAR_O + BAR_W, BAR_O + BAR_H, pFuelBarBlack);
 
         // Draw outline of fuel bar
-        canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W, BAR_O + BAR_H, fbp);
+        canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W, BAR_O + BAR_H, pFuelBarOutline);
     }
 
     @Override
@@ -434,10 +428,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         arrows.clear();
 
         canvas.drawColor(Color.BLACK);
-        drawGrid(canvas);
 
         canvas.save();
 
+        // TODO - Move this painter...
         Paint L = new Paint();
         L.setColor(Color.RED);
 
@@ -536,9 +530,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private void drawSelector(Canvas canvas) {
 
-        Paint sp = new Paint();
-
-        sp.setARGB(255, 115, 200, 230);
+        if (!shipBeingDragged) {
+            return;
+        }
 
         // Selector fades in once activated
         if (shipDragTimer > 0) {
@@ -547,53 +541,18 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         float fade = (float) (MAX_SHIP_DRAG_TIMER - shipDragTimer) / MAX_SHIP_DRAG_TIMER;
 
-        sp.setAlpha((int) (50 * fade));
-
         PointF shipPos = level.ship.getPos();
-
         PointF worldPos = getMapCoordsFromScreenPos(touchLast.x, touchLast.y);
 
-        if (shipBeingDragged) {
-            canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
-        }
+        // Draw the filled interior portion
+        pSelectorFill.setAlpha((int) (50 * fade));
+        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, pSelectorFill);
 
-        if (shipDragTimer > 0) {
-            shipDragTimer--;
-        }
+        // Draw the outlines
+        pSelectorOutline.setAlpha((int) (150 * fade));
 
-        sp.setAlpha(150);
-        sp.setStyle(Paint.Style.STROKE);
-        sp.setStrokeWidth(5);
-
-        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_INNER, sp);
-
-        sp.setAlpha((int) (150 * fade));
-
-        if (shipBeingDragged) {
-
-            canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, sp);
-
-            float d = level.ship.distanceTo(worldPos.x, worldPos.y);
-
-            if (d > Ship.SELECTION_RADIUS_OUTER) {
-                d = Ship.SELECTION_RADIUS_OUTER;
-            }
-
-            if (d > Ship.SELECTION_RADIUS_INNER) {
-
-                float ca = (float) Math.cos(-level.ship.getAngle());
-                float sa = (float) Math.sin(-level.ship.getAngle());
-
-                /*
-                canvas.drawLine(
-                        shipPos.x - Ship.SELECTION_RADIUS_INNER * ca,
-                        shipPos.y + Ship.SELECTION_RADIUS_INNER * sa,
-                        shipPos.x - d * ca,
-                        shipPos.y + d * sa,
-                        sp);
-                */
-            }
-        }
+        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_OUTER, pSelectorOutline);
+        canvas.drawCircle(shipPos.x, shipPos.y, Ship.SELECTION_RADIUS_INNER, pSelectorOutline);
     }
 
     private void drawArrows(Canvas canvas) {
@@ -604,14 +563,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         double dx, dy;
         double angle;
 
-        Paint arrowPaint = new Paint();
-
         float x, y = 0;
 
         for (int i=0; i<arrows.size(); i++) {
             arrow = arrows.get(i);
 
-            arrowPaint.setColor(arrow.color);
+            pArrow.setColor(arrow.color);
 
             PointF pos = getScreenPosFromMapCoords(arrow.x, arrow.y);
 
@@ -622,7 +579,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
             PointF edge = getPointOnEdge(angle);
 
-            canvas.drawCircle(edge.x, edge.y, 10, arrowPaint);
+            canvas.drawCircle(edge.x, edge.y, 10, pArrow);
         }
     }
 

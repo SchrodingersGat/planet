@@ -10,7 +10,8 @@ import android.graphics.Canvas;
 
 public class Star extends StellarObject {
 
-    private final float starRadius = 35;
+    static final float STAR_RADIUS = 15;
+    static final float STAR_COLLECTION_RADIUS = 35;
 
     private boolean collected;
 
@@ -25,7 +26,7 @@ public class Star extends StellarObject {
     }
 
     private void init() {
-        setRadius(starRadius);
+        setRadius(STAR_RADIUS);
         collected = false;
     }
 
@@ -35,12 +36,11 @@ public class Star extends StellarObject {
 
     public boolean testCollection(float x, float y) {
 
-        float r = 1.5f * radius;
-
-        return distanceSquared(x, y) < (r * r);
+        return distanceSquared(x, y) < (STAR_COLLECTION_RADIUS * STAR_COLLECTION_RADIUS);
     }
 
     public void draw(Canvas canvas) {
+
         Paint p = new Paint();
 
         p.setColor(Color.CYAN);
@@ -49,6 +49,6 @@ public class Star extends StellarObject {
             p.setAlpha(100);
         }
 
-        canvas.drawCircle(getX(), getY(), 10, p);
+        canvas.drawCircle(getX(), getY(), STAR_RADIUS, p);
     }
 }

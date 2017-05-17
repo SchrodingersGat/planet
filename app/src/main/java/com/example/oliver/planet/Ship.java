@@ -59,8 +59,35 @@ public class Ship extends GameObject {
     final double MAX_ROT_SPEED = 0.025;
     private double rotationSpeed = 0.0;
 
+    /* Painters */
+    private Paint pShip;
+    private Paint pThrust;
+    private Paint pRotThrust;
+    private Paint pCrumb;
+
+    void setupPainters() {
+        pCrumb = new Paint();
+        pCrumb.setStrokeWidth(3);
+
+        pShip = new Paint();
+        pShip.setColor(Color.RED);
+        pShip.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        pThrust = new Paint();
+        pThrust.setARGB(150, 240, 200, 85);
+        pThrust.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        pRotThrust = new Paint();
+        pRotThrust.setARGB(100, 150, 220, 230);
+        pRotThrust.setStyle(Paint.Style.FILL_AND_STROKE);
+        pRotThrust.setStrokeWidth(15);
+
+    }
+
     public Ship() {
         super();
+
+        setupPainters();
 
         angle = 0;
 
@@ -264,12 +291,17 @@ public class Ship extends GameObject {
 
         accelerate(ax, ay);
 
-        if (planet.getPlanetType() == Planet.PlanetType.SUN && planet.pointWithinAtmosphere(pos.x, pos.y)) {
+        if (planet.getPlanetType() == Planet.PlanetType.SUN) {
 
-            fuel += SUN_FUEL_RECHARGE;
+            float a = planet.getTotalRadius();
 
-            if (fuel > MAX_FUEL) {
-                fuel = MAX_FUEL;
+            if (planet.distanceSquared(pos.x, pos.y) < (a * a)) {
+
+                fuel += SUN_FUEL_RECHARGE;
+
+                if (fuel > MAX_FUEL) {
+                    fuel = MAX_FUEL;
+                }
             }
         }
     }
@@ -435,15 +467,11 @@ public class Ship extends GameObject {
 
     public void drawBreadcrumbList(Vector<Breadcrumb> crumbs, int color, Canvas canvas) {
 
-        Paint crumbPaint = new Paint();
-
-        crumbPaint.setStrokeWidth(3);
-        crumbPaint.setColor(color);
+        pCrumb.setColor(color);
 
         for (int i=0; i<crumbs.size(); i++) {
-            crumbs.get(i).draw(canvas, crumbPaint);
+            crumbs.get(i).draw(canvas, pCrumb);
         }
-
     }
 
     /**
@@ -455,8 +483,6 @@ public class Ship extends GameObject {
 
         canvas.translate(getX(), getY());
         canvas.rotate((float) (angle * 180 / Math.PI) + 90);
-
-        Paint p = new Paint();
 
         Path path = new Path();
 
@@ -479,25 +505,20 @@ public class Ship extends GameObject {
             drawRotationJet(canvas);
         }
 
-        p.setColor(Color.RED);
-
         path.reset();
         path.moveTo(-W, W);
         path.lineTo( W, W);
         path.lineTo( 0, W-H);
         path.lineTo(-W, W);
 
-        canvas.drawPath(path, p);
+        canvas.drawPath(path, pShip);
 
         canvas.restore();
     }
 
     private void drawThrustJet(Canvas canvas) {
-        Paint thrustPaint = new Paint();
 
         Path path = new Path();
-
-        thrustPaint.setColor(Color.argb(150, 240, 200, 85));
 
         float W = 15;
         float H = 65;
@@ -510,18 +531,14 @@ public class Ship extends GameObject {
         path.lineTo( 0, 0);
         path.lineTo(-W, T);
 
-        canvas.drawPath(path, thrustPaint);
+        canvas.drawPath(path, pThrust);
     }
 
     private void drawRotationJet(Canvas canvas) {
-        Paint jetPaint = new Paint();
-
-        jetPaint.setColor(Color.argb(100, 150, 220, 230));
-        jetPaint.setStrokeWidth(15);
 
         double r = -1 * rotationSpeed * 0.5 * SELECTION_RADIUS_INNER / MAX_ROT_SPEED;
 
         final float yOff = -15;
-        canvas.drawLine(0, yOff, (float) r, yOff, jetPaint);
+        canvas.drawLine(0, yOff, (float) r, yOff, pRotThrust);
     }
 }

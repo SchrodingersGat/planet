@@ -47,7 +47,7 @@ public class GameLevel {
     public void reset() {
 
         ship.reset();
-        ship.setPos(shipStartingPosition);
+        ship.setPos(shipStartingPosition.x, shipStartingPosition.y);
 
         for (int i=0; i<stars.size(); i++) {
             stars.get(i).setCollected(false);

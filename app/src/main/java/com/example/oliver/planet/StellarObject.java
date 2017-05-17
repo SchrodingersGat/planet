@@ -8,6 +8,9 @@ import android.graphics.PointF;
 
 public class StellarObject extends GameObject {
 
+    static final float MIN_RADIUS = 10;
+    static final float MAX_RADIUS = 2500;
+
     protected float radius = 1.0f;
 
     public StellarObject() {
@@ -23,8 +26,17 @@ public class StellarObject extends GameObject {
         return radius;
     }
 
-    public void setRadius(float radius) {
-        this.radius = radius;
+    public void setRadius(float r) {
+
+        if (r < MIN_RADIUS) {
+            r = MIN_RADIUS;
+        }
+
+        if (r > MAX_RADIUS) {
+            r = MAX_RADIUS;
+        }
+
+        radius = r;
     }
 
     public boolean containsPoint(float x, float y) {

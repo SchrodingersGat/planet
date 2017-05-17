@@ -20,12 +20,23 @@ public class Wormhole extends Planet {
     // State variable prevents ship oscillating
     private boolean shipInsideWormhole = false;
 
+    private Paint pWormhole;
+
+    void setupPainters() {
+        pWormhole = new Paint();
+        pWormhole.setStyle(Paint.Style.STROKE);
+        pWormhole.setStrokeWidth(2);
+        pWormhole.setARGB(200, 200, 250, 150);
+    }
+
     public void reset() {
         shipInsideWormhole = false;
     }
 
     public Wormhole(float x, float y) {
         super(x, y, WORMHOLE_RADIUS);
+
+        setupPainters();
 
         reset();
     }
@@ -41,8 +52,7 @@ public class Wormhole extends Planet {
     public void moveShipTo(Ship s, float dx, float dy) {
         shipInsideWormhole = true;
 
-        s.setX(pos.x + dx);
-        s.setY(pos.y + dy);
+        s.setPos(pos.x + dx, pos.y + dy);
     }
 
 
@@ -73,20 +83,9 @@ public class Wormhole extends Planet {
     @Override
     public void draw(Canvas canvas) {
 
-        Paint p = new Paint();
-
-        p.setStyle(Paint.Style.STROKE);
-        p.setStrokeWidth(1.5f);
-        p.setColor(Color.argb(200, 200, 250, 150));
-
         // Concentric circles, I guess?
         for (int i=0; i<10; i++) {
-            canvas.drawCircle(pos.x, pos.y, WORMHOLE_THRESHOLD + (float) (i + 1) / 10 * (WORMHOLE_RADIUS - WORMHOLE_THRESHOLD), p);
+            canvas.drawCircle(pos.x, pos.y, WORMHOLE_THRESHOLD + (float) (i + 1) / 10 * (WORMHOLE_RADIUS - WORMHOLE_THRESHOLD), pWormhole);
         }
-
-        // Show threshold
-        p.setColor(Color.argb(200, 250, 200, 150));
-
-        canvas.drawCircle(pos.x, pos.y, WORMHOLE_THRESHOLD, p);
     }
 }

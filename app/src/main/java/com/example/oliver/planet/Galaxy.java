@@ -13,23 +13,28 @@ public class Galaxy extends Planet {
     static final float GALAXY_RADIUS = 250.0f;
     private final float GALAXY_THRESHOLD = 0.5f * GALAXY_RADIUS;
 
+    private Paint pGalaxy;
+
+    private void setupPainters() {
+        pGalaxy = new Paint();
+        pGalaxy.setARGB(200, 200, 250, 250);
+        pGalaxy.setStrokeWidth(2);
+        pGalaxy.setStyle(Paint.Style.STROKE);
+    }
+
     public Galaxy(float x, float y) {
         super(x, y, GALAXY_RADIUS);
+
+        setupPainters();
     }
 
     public void draw(Canvas canvas) {
-        Paint gp = new Paint();
 
-        gp.setColor(Color.argb(200, 200, 250, 250));
+        canvas.drawCircle(pos.x, pos.y, GALAXY_RADIUS, pGalaxy);
+        canvas.drawCircle(pos.x, pos.y, GALAXY_THRESHOLD, pGalaxy);
 
-        gp.setStrokeWidth(2);
-        gp.setStyle(Paint.Style.STROKE);
-
-        canvas.drawCircle(pos.x, pos.y, GALAXY_RADIUS, gp);
-        canvas.drawCircle(pos.x, pos.y, GALAXY_THRESHOLD, gp);
-
-        canvas.drawLine(pos.x, pos.y - radius, pos.x, pos.y + radius, gp);
-        canvas.drawLine(pos.x - radius, pos.y, pos.x + radius, pos.y, gp);
+        canvas.drawLine(pos.x, pos.y - radius, pos.x, pos.y + radius, pGalaxy);
+        canvas.drawLine(pos.x - radius, pos.y, pos.x + radius, pos.y, pGalaxy);
     }
 
     boolean testShip(Ship s) {

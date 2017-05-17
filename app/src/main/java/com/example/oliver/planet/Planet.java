@@ -33,9 +33,95 @@ public class Planet extends StellarObject {
     // Acceleration constant
     private final float G = 500.0f;
 
+    /* Painters */
+    private Paint pPlanet;
+    private Paint pAtmosphere;
+    private RadialGradient rgAtmosphere;
+
+    private void setupPainters() {
+        pPlanet = new Paint();
+        pPlanet.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        if (pAtmosphere == null) {
+            pAtmosphere = new Paint();
+        }
+    }
+
     public Planet(float x, float y, float r) {
-        super(x, y);
-        setRadius(r);
+
+        setupPainters();
+
+        pos.set(x, y);
+        radius = r;
+
+        setPlanetType(PlanetType.PLANET);
+
+        updateAtmosphere();
+    }
+
+    private void updateAtmosphere() {
+
+        // Atmosphere only applies for SUN planet type
+        final int r = 250;
+        final int g = 220;
+        final int b = 50;
+
+        int[] colors = {
+                Color.argb(150, r, g, b),
+                Color.argb(50, r, g, b),
+                Color.argb(0, r, g, b)
+        };
+
+        float R = radius + atmosphere;
+
+        if (R < 50) {
+            R = 50;
+        }
+
+        float[] stops = {
+                radius / R,
+                (R - 50) / R,
+                1.0f
+        };
+
+        rgAtmosphere = new RadialGradient(
+                pos.x,
+                pos.y,
+                R,
+                colors,
+                stops,
+                Shader.TileMode.CLAMP);
+
+        if (pAtmosphere == null) {
+            pAtmosphere = new Paint();
+        }
+
+        pAtmosphere.setShader(rgAtmosphere);
+    }
+
+    public PlanetType getPlanetType() {
+        return planetType;
+    }
+
+    public void setPlanetType(PlanetType t) {
+        planetType = t;
+
+        switch (t) {
+            default:
+            case PLANET:
+                pPlanet.setColor(Color.GREEN);
+                break;
+            case SUN:
+                pPlanet.setColor(Color.YELLOW);
+                updateAtmosphere();
+                break;
+            case REPULSAR:
+                pPlanet.setColor(Color.WHITE);
+                break;
+            case BLACK_HOLE:
+                pPlanet.setColor(Color.BLUE);
+                break;
+        }
     }
 
     public void setAtmosphere(float r) {
@@ -48,25 +134,11 @@ public class Planet extends StellarObject {
         }
 
         atmosphere = r;
-    }
 
-    public boolean pointWithinAtmosphere(float x, float y) {
-        if (atmosphere <= radius) { return false; }
-
-        float r = radius + atmosphere - 50;
-
-        if (r < 0) {
-            r = 0;
-        }
-
-        return distanceSquared(x, y) <= (r * r);
+        updateAtmosphere();
     }
 
     public float getAtmosphere() { return atmosphere; }
-
-    public void setPlanetType(PlanetType t) { planetType = t; }
-
-    public PlanetType getPlanetType() { return planetType; }
 
     public double getForce(float x, float y) {
 
@@ -91,64 +163,26 @@ public class Planet extends StellarObject {
     }
 
     public void draw(Canvas canvas) {
-        Paint p = new Paint();
 
-        switch (planetType) {
-            default:
-            case PLANET:
-                p.setColor(Color.GREEN);
-                break;
-            case SUN:
-                p.setColor(Color.YELLOW);
-                break;
-            case REPULSAR:
-                p.setColor(Color.WHITE);
-                break;
-            case BLACK_HOLE:
-                p.setColor(Color.BLUE);
-                break;
+        // Draw atmosphere for SUN type planet
+        if (planetType == PlanetType.SUN && atmosphere > 0) {
+            canvas.drawCircle(pos.x, pos.y, radius + atmosphere, pAtmosphere);
         }
 
-        // Draw the atmosphere (for a sun)
-        if (atmosphere > 0) {
-
-            final int r = 250;
-            final int g = 220;
-            final int b = 50;
-
-            int[] colors = {
-                    Color.argb(150, r, g, b),
-                    Color.argb(50, r, g, b),
-                    Color.argb(0, r, g, b)
-            };
-
-            float R = radius + atmosphere;
-
-            float[] stops = {
-                    radius / R,
-                    (R - 50) / R,
-                    1.0f
-            };
-
-            RadialGradient rg = new RadialGradient(
-                    pos.x,
-                    pos.y,
-                    radius + atmosphere,
-                    colors,
-                    stops,
-                    Shader.TileMode.CLAMP);
-
-            p.setShader(rg);
-            //p.setAlpha(25);
-            canvas.drawCircle(pos.x, pos.y, radius + atmosphere, p);
-        }
-
-        p.setShader(null);
-        p.setAlpha(255);
-        p.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawCircle(pos.x, pos.y, radius, p);
-
+        canvas.drawCircle(pos.x, pos.y, radius, pPlanet);
     }
 
+    @Override
+    public void setPos(float x, float y) {
+        super.setPos(x, y);
 
+        updateAtmosphere();
+    }
+
+    @Override
+    public void setRadius(float r) {
+        super.setRadius(r);
+
+        updateAtmosphere();
+    }
 }

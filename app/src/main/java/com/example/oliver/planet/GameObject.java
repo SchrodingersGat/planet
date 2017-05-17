@@ -29,20 +29,8 @@ public class GameObject {
 
     public float getY() { return pos.y; }
 
-    public void setX(float x) {
-        pos.x = x;
-    }
-
-    public void setY(float y) {
-        pos.y = y;
-    }
-
     public void setPos(float x, float y) {
         pos.set(x,y);
-    }
-
-    public void setPos(PointF p) {
-        pos.set(p.x, p.y);
     }
 
     public float distanceSquared(float x, float y) {
