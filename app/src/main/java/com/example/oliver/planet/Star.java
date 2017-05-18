@@ -10,14 +10,24 @@ import android.graphics.Canvas;
 
 public class Star extends StellarObject {
 
+    static final int STAR_COLOR = Color.rgb(245, 233, 100);
+
     static final float STAR_RADIUS = 15;
-    static final float STAR_COLLECTION_RADIUS = 35;
+    static final float STAR_COLLECTION_RADIUS = 5;
 
     private boolean collected;
+
+    private Paint pStar = new Paint();
+
+    private void setupPainters() {
+        pStar.setColor(STAR_COLOR);
+    }
 
     public Star() {
         super();
         init();
+
+        setupPainters();
     }
 
     public Star(float x, float y) {
@@ -41,14 +51,10 @@ public class Star extends StellarObject {
 
     public void draw(Canvas canvas) {
 
-        Paint p = new Paint();
-
-        p.setColor(Color.CYAN);
-
         if (collected) {
-            p.setAlpha(100);
+            return;
         }
 
-        canvas.drawCircle(getX(), getY(), STAR_RADIUS, p);
+        canvas.drawCircle(getX(), getY(), STAR_RADIUS, pStar);
     }
 }

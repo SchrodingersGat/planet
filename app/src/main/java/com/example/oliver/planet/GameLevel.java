@@ -22,8 +22,20 @@ public class GameLevel {
     static final float LEVEL_BOUNDS = 5000;
 
     public Vector<WormholePair> wormholes;
+
+    /*
+    Vector for storing the various planets. Planets come in multiple flavours:
+        Planet (normal)
+        Black hole (strong gravity)
+        Repulsar (pushy)
+        Moon (orbits a planet)
+        Sun (planets can orbit this)
+     */
     public Vector<Planet> planets;
-    public Vector<Moon> moons;
+
+    /*
+    Stars are to be collected by the user
+     */
     public Vector<Star> stars;
 
     public Galaxy endZone;
@@ -36,7 +48,6 @@ public class GameLevel {
         planets = new Vector<Planet>();
         stars = new Vector<Star>();
         wormholes = new Vector<WormholePair>();
-        moons = new Vector<Moon>();
 
         ship = new Ship();
 
@@ -55,8 +66,8 @@ public class GameLevel {
             stars.get(i).setCollected(false);
         }
 
-        for (int i=0; i<moons.size(); i++) {
-            moons.get(i).resetOrbit();
+        for (int i=0; i<planets.size(); i++) {
+            planets.get(i).reset();
         }
 
         ship.fuel = Ship.MAX_FUEL;
@@ -65,7 +76,6 @@ public class GameLevel {
     public void update() {
 
         Planet p;
-        Moon m;
 
         if (ship.isReleased() && !ship.hasCrashed()) {
 
@@ -80,20 +90,10 @@ public class GameLevel {
             for (int i=0; i<planets.size(); i++) {
                 p = planets.get(i);
 
+                p.updateOrbit();
                 ship.applyPlanetForce(p);
 
                 if (p.containsPoint(ship.getPos())) {
-                    ship.setCrashed(true);
-                }
-            }
-
-            // Update each moon
-            for (int i=0; i<moons.size(); i++) {
-                m = moons.get(i);
-                m.updateOrbit();
-                ship.applyPlanetForce(m);
-
-                if (m.containsPoint(ship.getPos())) {
                     ship.setCrashed(true);
                 }
             }

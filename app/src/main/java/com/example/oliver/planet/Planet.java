@@ -9,17 +9,22 @@ import android.graphics.Paint;
 import android.graphics.Canvas;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
+import java.util.Vector;
 
 public class Planet extends StellarObject {
 
-    public enum  PlanetType {
+    // Orbit constants
+    static final float MIN_ORBIT_RADIUS = 250;
+    static final float MAX_ORBIT_RADIUS = 2500;
+
+    public enum PlanetType {
         PLANET,
         SUN,
         BLACK_HOLE,
         REPULSAR,
+        MOON,
 
         // Special cases
-        MOON,
         WORMHOLE,
         GALAXY
     };
@@ -38,23 +43,137 @@ public class Planet extends StellarObject {
     private final float G = 750.0f;
 
     /* Painters */
-    private Paint pPlanet;
-    private Paint pAtmosphere;
+    private Paint pPlanet = new Paint();
+    private Paint pAtmosphere = new Paint();
     private RadialGradient rgAtmosphere;
 
     private void setupPainters() {
-        pPlanet = new Paint();
         pPlanet.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        if (pAtmosphere == null) {
-            pAtmosphere = new Paint();
+    }
+
+    /*
+    Does this planet orbit some other planet?
+    Orbit defined by equation:
+    W = sqrt(G*M/r^3) where:
+        G = gravitational constant
+        M = mass of planet orbited by this planet
+        r = orbit radius
+
+    The angular velocity W is calculated when the orbit radius is changed
+    (Otherwise expensive sqrt operation is needed often)
+     */
+    private Planet orbit = null;
+    private float orbitRadius = MIN_ORBIT_RADIUS;
+    private float orbitVelocity = 0.0f;
+    private float orbitAngle = 0.0f;
+    private float orbitStartingAngle = 0.0f;
+    private boolean orbitDir = true;
+
+    public void orbitPlanet(Planet p, float r, float a, boolean dir) {
+
+        if (p == this) {
+            p = null;
         }
+
+        orbit = p;
+        setOrbitRadius(r);
+        setOrbitStartingAngle(a);
+
+        orbitAngle = orbitStartingAngle;
+
+        // Calculate the orbit velocity
+        if (orbit != null) {
+            orbitVelocity = (float) Math.sqrt(G * orbit.getMass() / Math.pow(orbitRadius, 3));
+        }
+        else {
+            orbitVelocity = 0;
+        }
+
+        setOrbitDirection(dir);
+
+        resetOrbit();
+    }
+
+    public void setOrbitDirection(boolean dir) {
+        orbitDir = dir;
+    }
+
+    /*
+    Set the orbit radius of this planet
+     */
+    public void setOrbitRadius(float r) {
+        if (r < MIN_ORBIT_RADIUS) {
+            r = MIN_ORBIT_RADIUS;
+        }
+        if (r > MAX_ORBIT_RADIUS) {
+            r = MAX_ORBIT_RADIUS;
+        }
+
+        orbitRadius = r;
+    }
+
+    public void setOrbitStartingAngle(float a) {
+
+        if (a < -Math.PI) {
+            a += 2 * Math.PI;
+        }
+        if (a > Math.PI) {
+            a -= 2 * Math.PI;
+        }
+
+        orbitStartingAngle = a;
+    }
+
+    /*
+    Update the orbit of this planet around a parent planet
+     */
+    public void updateOrbit() {
+        if (orbit == null) {
+            return;
+        }
+
+        double x = orbit.getX() + orbitRadius * Math.cos(orbitAngle);
+        double y = orbit.getY() + orbitRadius * Math.sin(orbitAngle);
+
+        pos.set((float) x, (float) y);
+
+        if (orbitDir) {
+            orbitAngle += orbitVelocity;
+        }
+        else {
+            orbitAngle -= orbitVelocity;
+        }
+
+        if (orbitAngle > Math.PI) {
+            orbitAngle -= 2 * Math.PI;
+        }
+        else if (orbitAngle < -Math.PI) {
+            orbitAngle += 2 * Math.PI;
+        }
+    }
+
+    private void resetOrbit() {
+        orbitAngle = orbitStartingAngle;
+        updateOrbit();
     }
 
     /* Default constructor */
     public Planet() {
         pos.set(0, 0);
-        radius = MIN_RADIUS;
+        setRadius(MIN_RADIUS);
+
+        init();
+    }
+
+    /* Orbiting constructor */
+    public Planet(Planet parent, float r, float rOrbit, float aOrbit, boolean dOrbit) {
+        pos.set(0, 0);
+        setRadius(r);
+
+        orbitPlanet(parent, rOrbit, aOrbit, dOrbit);
+
+        init();
     }
 
     public Planet(float x, float y, float r) {
@@ -62,11 +181,22 @@ public class Planet extends StellarObject {
         setupPainters();
 
         pos.set(x, y);
-        radius = r;
+        setRadius(r);
 
+        init();
+    }
+
+    private void init() {
+        setupPainters();
         setPlanetType(PlanetType.PLANET);
-
         updateAtmosphere();
+    }
+
+    /*
+    Reset the planet to the level starting conditions
+     */
+    public void reset() {
+        resetOrbit();
     }
 
     private void updateAtmosphere() {
@@ -113,28 +243,26 @@ public class Planet extends StellarObject {
         return planetType;
     }
 
+    public int getSimpleColor() {
+        switch (planetType) {
+            default:
+            case PLANET:
+                return Color.GREEN;
+            case SUN:
+                return Color.rgb(255, 175, 70);
+            case REPULSAR:
+                return Color.rgb(190, 250, 240);
+            case BLACK_HOLE:
+                return Color.rgb(115, 175, 255);
+            case MOON:
+                return Color.rgb(200, 200, 200);
+        }
+    }
+
     public void setPlanetType(PlanetType t) {
         planetType = t;
 
-        switch (t) {
-            default:
-            case PLANET:
-                pPlanet.setColor(Color.GREEN);
-                break;
-            case SUN:
-                pPlanet.setColor(Color.YELLOW);
-                updateAtmosphere();
-                break;
-            case REPULSAR:
-                pPlanet.setColor(Color.WHITE);
-                break;
-            case BLACK_HOLE:
-                pPlanet.setColor(Color.BLUE);
-                break;
-            //case MOON:
-            //    pPlanet.setColor(Color.GRAY);
-            //    break;
-        }
+        pPlanet.setColor(getSimpleColor());
     }
 
     public void setAtmosphere(float r) {
@@ -153,26 +281,31 @@ public class Planet extends StellarObject {
 
     public float getAtmosphere() { return atmosphere; }
 
-    public double getForce(float x, float y) {
+    public double getMass() {
 
-        // Base force
-        double force = G * radius / distanceSquared(x, y);
+        double mass = G * radius;
 
-        // Force modifiers depending on planet type
         switch (planetType) {
             default:
             case PLANET:
+                break;
             case SUN:
+                mass *= 1.5;
                 break;
             case REPULSAR:
-                force *= -1;
+                mass *= -1;
                 break;
             case BLACK_HOLE:
-                force *= radius;
+                mass *= radius;
                 break;
         }
 
-        return force;
+        return mass;
+    }
+
+    public double getForce(float x, float y) {
+
+        return getMass() / distanceSquared(x, y);
     }
 
     public void draw(Canvas canvas) {
