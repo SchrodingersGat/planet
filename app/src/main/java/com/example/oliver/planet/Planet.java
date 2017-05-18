@@ -84,7 +84,11 @@ public class Planet extends StellarObject {
 
         // Calculate the orbit velocity
         if (orbit != null) {
-            orbitVelocity = (float) Math.sqrt(G * orbit.getMass() / Math.pow(orbitRadius, 3));
+            float W = (float) Math.sqrt(G * orbit.getMass() / Math.pow(orbitRadius, 3));
+
+            W /= 100;
+
+            orbitVelocity = W;
         }
         else {
             orbitVelocity = 0;
@@ -174,6 +178,9 @@ public class Planet extends StellarObject {
         orbitPlanet(parent, rOrbit, aOrbit, dOrbit);
 
         init();
+
+        // Override planet type
+        setPlanetType(PlanetType.MOON);
     }
 
     public Planet(float x, float y, float r) {

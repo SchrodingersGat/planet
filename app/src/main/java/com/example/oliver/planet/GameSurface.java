@@ -67,42 +67,35 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private final int LOOK_AWAY_TIMER_RESET = 50;
 
     /* Painter Objects */
-    private Paint pSelectorFill;
-    private Paint pSelectorOutline;
-    private Paint pArrow;
-    private Paint pMenu;
-    private Paint pFuelBarInterior;
-    private Paint pFuelBarOutline;
-    private Paint pFuelBarBlack;
+    private Paint pSelectorFill = new Paint();
+    private Paint pSelectorOutline = new Paint();
+    private Paint pArrow = new Paint();
+    private Paint pMenu = new Paint();
+    private Paint pFuelBarInterior = new Paint();
+    private Paint pFuelBarOutline = new Paint();
+    private Paint pFuelBarBlack = new Paint();
 
     private void setupPainters() {
 
         // Ship selector painters
-        pSelectorFill = new Paint();
         pSelectorFill.setARGB(255, 115, 200, 230);
         pSelectorFill.setStyle(Paint.Style.FILL);
 
-        pSelectorOutline = new Paint();
         pSelectorOutline.setARGB(255, 115, 200, 230);
         pSelectorOutline.setStrokeWidth(5);
         pSelectorOutline.setStyle(Paint.Style.STROKE);
 
-        pArrow = new Paint();
         pArrow.setStyle(Paint.Style.FILL);
 
-        pMenu = new Paint();
         pMenu.setARGB(150, 175, 230, 175);
         pMenu.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        pFuelBarInterior = new Paint();
         pFuelBarInterior.setStyle(Paint.Style.FILL);
         pFuelBarInterior.setARGB(200, 50, 250, 50);
 
-        pFuelBarBlack = new Paint();
         pFuelBarBlack.setStyle(Paint.Style.FILL);
         pFuelBarBlack.setARGB(150, 0, 0, 0);
 
-        pFuelBarOutline = new Paint();
         pFuelBarOutline.setStyle(Paint.Style.STROKE);
         pFuelBarOutline.setARGB(250, 50, 250, 50);
         pFuelBarOutline.setStrokeWidth(5);
@@ -133,12 +126,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(-450, -250, 90);
         level.planets.add(p);
 
-        /*
         // Create a moon
-        Planet moon = new Planet(p, 45, 250, 0, true);
-
+        Planet moon = new Planet(p, 30, 250, 0, true);
         level.planets.add(moon);
-        */
+
+        moon = new Planet(p, 30, 400, (float) Math.PI * 0.8f, false);
+        level.planets.add(moon);
 
         p = new Planet(500, 125, 10);
         level.planets.add(p);
@@ -151,7 +144,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         //level.planets.add(p);
 
-        p = new Planet(-1200, 750, 100);
+        p = new Planet(-1200, 750, 150);
         p.setPlanetType(Planet.PlanetType.SUN);
         p.setAtmosphere(500);
         level.planets.add(p);
