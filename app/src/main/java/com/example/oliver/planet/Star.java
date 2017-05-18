@@ -26,8 +26,6 @@ public class Star extends StellarObject {
     public Star() {
         super();
         init();
-
-        setupPainters();
     }
 
     public Star(float x, float y) {
@@ -38,6 +36,7 @@ public class Star extends StellarObject {
     private void init() {
         setRadius(STAR_RADIUS);
         collected = false;
+        setupPainters();
     }
 
     public boolean isCollected() { return collected; }

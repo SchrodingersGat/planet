@@ -1,13 +1,9 @@
 package com.example.oliver.planet;
 
-import android.appwidget.AppWidgetHost;
-import android.content.ContentResolver;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.SurfaceView;
 import android.content.Context;
 import android.os.Handler;
-import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -137,9 +133,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(-450, -250, 90);
         level.planets.add(p);
 
-        Moon m = new Moon(p, 45, -Math.PI/4, 650, 0.01f);
-        level.moons.add(m);
+        /*
+        // Create a moon
+        Planet moon = new Planet(p, 45, 250, 0, true);
 
+        level.planets.add(moon);
+        */
 
         p = new Planet(500, 125, 10);
         level.planets.add(p);
@@ -451,14 +450,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 wh.wormholeA.draw(canvas);
             }
             else {
-                arrows.add(new OffScreenArrow(wh.wormholeA.getX(), wh.wormholeA.getY(), Color.WHITE));
+                arrows.add(new OffScreenArrow(wh.wormholeA.getX(), wh.wormholeA.getY(), Color.WHITE, OffScreenArrow.ArrowShape.CIRCLE));
             }
 
             if (itemOnScreen(wh.wormholeB, Wormhole.WORMHOLE_RADIUS)) {
                 wh.wormholeB.draw(canvas);
             }
             else {
-                arrows.add(new OffScreenArrow(wh.wormholeB.getX(), wh.wormholeB.getY(), Color.WHITE));
+                arrows.add(new OffScreenArrow(wh.wormholeB.getX(), wh.wormholeB.getY(), Color.WHITE, OffScreenArrow.ArrowShape.CIRCLE));
             }
         }
 
@@ -470,7 +469,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 p.draw(canvas);
             }
             else {
-                arrows.add(new OffScreenArrow(p.getX(), p.getY(), Color.GREEN));
+                arrows.add(new OffScreenArrow(
+                        p.getX(),
+                        p.getY(),
+                        p.getSimpleColor(),
+                        OffScreenArrow.ArrowShape.CIRCLE));
             }
         }
 
@@ -484,23 +487,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             }
             else
             {
-                arrows.add(new OffScreenArrow(s.getX(), s.getY(), Color.YELLOW));
-            }
-        }
-
-        // Draw each moon
-        for (int mm=0; mm<level.moons.size(); mm++) {
-            Moon m = level.moons.get(mm);
-
-            canvas.drawLine(m.getX(), m.getY(), m.getParentPlanet().getX(), m.getParentPlanet().getY(), pMenu);
-
-            if (itemOnScreen(m, m.getRadius())) {
-                canvas.drawCircle(m.getX(), m.getY(), m.getRadius(), pMenu);
-                //m.draw(canvas);
-            }
-            else
-            {
-                arrows.add(new OffScreenArrow(m.getX(), m.getY(), Color.GRAY));
+                arrows.add(new OffScreenArrow(
+                        s.getX(),
+                        s.getY(),
+                        Star.STAR_COLOR,
+                        OffScreenArrow.ArrowShape.DIAMOND));
             }
         }
 
@@ -512,7 +503,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             arrows.add(new OffScreenArrow(
                     level.endZone.getX(),
                     level.endZone.getY(),
-                    Color.WHITE));
+                    Color.WHITE,
+                    OffScreenArrow.ArrowShape.DIAMOND));
         }
 
         // Draw the ship selector
@@ -524,7 +516,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
         else
         {
-            arrows.add(new OffScreenArrow(level.ship.getX(), level.ship.getY(), Color.RED));
+            arrows.add(new OffScreenArrow(level.ship.getX(), level.ship.getY(), Color.RED, OffScreenArrow.ArrowShape.DIAMOND));
         }
 
         // Draw the 'release point' of the ship
@@ -583,6 +575,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         double angle;
 
         float x, y = 0;
+        float a = OffScreenArrow.ARROW_SIZE;
+
+        Path path = new Path();
 
         for (int i=0; i<arrows.size(); i++) {
             arrow = arrows.get(i);
@@ -598,7 +593,25 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
             PointF edge = getPointOnEdge(angle);
 
-            canvas.drawCircle(edge.x, edge.y, 10, pArrow);
+            x = edge.x;
+            y = edge.y;
+
+            switch (arrow.shape) {
+                default:
+                case CIRCLE:
+                    canvas.drawCircle(x, y, a, pArrow);
+                    break;
+                case DIAMOND:
+                    path.reset();
+                    path.moveTo(x, y-a);
+                    path.lineTo(x-a, y);
+                    path.lineTo(x, y+a);
+                    path.lineTo(x+a, y);
+                    path.lineTo(x, y-a);
+
+                    canvas.drawPath(path, pArrow);
+                    break;
+            }
         }
     }
 
