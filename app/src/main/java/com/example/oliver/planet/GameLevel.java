@@ -131,19 +131,36 @@ public class GameLevel {
 
         // Test each planet
         for (int p=0; p<planets.size(); p++) {
-            if (planets.get(p).containsPoint(x,y)) {
+            if (planets.get(p).containsPoint(x, y)) {
                 return planets.get(p);
             }
         }
 
         // Test each star
         for (int s=0; s<stars.size(); s++) {
-            if (stars.get(s).containsPoint(x,y)) {
+            if (stars.get(s).containsPoint(x, y)) {
                 return stars.get(s);
             }
+        }
+
+        // Test wormholes
+        for (int w=0; w<wormholes.size(); w++) {
+            if (wormholes.get(w).wormholeA.containsPoint(x, y)) {
+                return wormholes.get(w).wormholeA;
+            }
+            if (wormholes.get(w).wormholeB.containsPoint(x, y)) {
+                return wormholes.get(w).wormholeB;
+            }
+        }
+
+        // Test end-soze
+        if (endZone.containsPoint(x, y)) {
+            return endZone;
         }
 
         // No result
         return null;
     }
+
+
 }
