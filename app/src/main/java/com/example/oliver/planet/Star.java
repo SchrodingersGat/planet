@@ -13,7 +13,7 @@ public class Star extends StellarObject {
     static final int STAR_COLOR = Color.rgb(245, 233, 100);
 
     static final float STAR_RADIUS = 15;
-    static final float STAR_COLLECTION_RADIUS = 5;
+    static final float STAR_COLLECTION_RADIUS = 35;
 
     private boolean collected;
 

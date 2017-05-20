@@ -7,6 +7,10 @@ package com.example.oliver.planet;
 import android.graphics.PointF;
 import java.util.Vector;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
 public class GameLevel {
 
     /*
@@ -52,6 +56,14 @@ public class GameLevel {
         ship = new Ship();
 
         endZone = new Galaxy(0, 0);
+    }
+
+    /* Clear all game objects from the level
+     */
+    private void clear() {
+        planets.clear();
+        stars.clear();
+        wormholes.clear();
     }
 
     /*
@@ -162,5 +174,117 @@ public class GameLevel {
         return null;
     }
 
+    /*
+    JSON keys
+     */
+    private final String KEY_PLANET_ARRAY = "Planets";
+    private final String KEY_STAR_ARRAY = "Stars";
+    private final String KEY_WORMHOLE_ARRAY = "Wormhole";
+    private final String KEY_ENDZONE = "Endzone";
+
+    public boolean encodeToJson(JSONObject json) {
+
+        try {
+            JSONObject jo;
+            JSONArray  ja;
+
+            // Add the planets
+            ja = new JSONArray();
+            for (int i=0; i<planets.size(); i++) {
+                jo = new JSONObject();
+                planets.get(i).encodeToJson(jo);
+
+                ja.put(jo);
+            }
+            json.put(KEY_PLANET_ARRAY, ja);
+
+            // Add the stars
+            ja = new JSONArray();
+            for (int i=0; i<stars.size(); i++) {
+                jo = new JSONObject();
+                stars.get(i).encodeToJson(jo);
+
+                ja.put(jo);
+            }
+            json.put(KEY_STAR_ARRAY, ja);
+
+            // Add the wormholes
+            ja = new JSONArray();
+            for (int i=0; i<wormholes.size(); i++) {
+                jo = new JSONObject();
+                wormholes.get(i).encodeToJson(jo);
+
+                ja.put(jo);
+            }
+            json.put(KEY_WORMHOLE_ARRAY, ja);
+
+            // Add the endpoint location
+            jo = new JSONObject();
+            endZone.encodeToJson(jo);
+
+            json.put(KEY_ENDZONE, jo);
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean decodeFromJson(JSONObject json) {
+
+        clear();
+
+        try {
+            JSONArray ja;
+            JSONObject jo;
+            /*
+            Load planets
+             */
+            if (json.has(KEY_PLANET_ARRAY) && !json.isNull(KEY_PLANET_ARRAY)) {
+                ja = json.getJSONArray(KEY_PLANET_ARRAY);
+
+                for (int i=0; i<ja.length(); i++) {
+                    if (ja.isNull(i)) {
+                        continue;
+                    }
+
+                    jo = ja.getJSONObject(i);
+
+                    Planet p = new Planet();
+
+                    if (p.decodeFromJson(json)) {
+                        planets.add(p);
+                    }
+                }
+            }
+
+            /*
+            Load stars
+             */
+            if (json.has(KEY_STAR_ARRAY) && !json.isNull(KEY_STAR_ARRAY)) {
+                ja = json.getJSONArray(KEY_STAR_ARRAY);
+
+                for (int i=0; i<ja.length(); i++) {
+                    if (ja.isNull(i)) {
+                        continue;
+                    }
+
+                    jo = ja.getJSONObject(i);
+
+                    Star s = new Star();
+
+                    if (s.decodeFromJson(jo)) {
+                        stars.add(s);
+                    }
+                }
+            }
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
+    }
 
 }

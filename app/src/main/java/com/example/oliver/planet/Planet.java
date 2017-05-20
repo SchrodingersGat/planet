@@ -9,7 +9,9 @@ import android.graphics.Paint;
 import android.graphics.Canvas;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
-import java.util.Vector;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Planet extends StellarObject {
 
@@ -327,18 +329,17 @@ public class Planet extends StellarObject {
         return getMass() / distanceSquared(x, y);
     }
 
-    private void drawOrbit(Canvas canvas) {
+    public void drawOrbit(Canvas canvas) {
 
+        if (orbit == null) {
+            return;
+        }
         canvas.drawCircle(orbit.getX(), orbit.getY(), orbitRadius, pOrbit);
         canvas.drawLine(pos.x, pos.y, orbit.getX(), orbit.getY(), pOrbit);
 
     }
 
     public void draw(Canvas canvas) {
-
-        if (orbit != null) {
-            drawOrbit(canvas);
-        }
 
         // Draw atmosphere for SUN type planet
         if (planetType == PlanetType.SUN && atmosphere > 0) {
@@ -360,5 +361,59 @@ public class Planet extends StellarObject {
         super.setRadius(r);
 
         updateAtmosphere();
+    }
+
+    /*
+    JSON keys
+     */
+
+    private final String KEY_PLANET_TYPE = "planetType";
+    private final String KEY_ATMOSPHERE = "atmosphere";
+
+    @Override
+    public boolean encodeToJson(JSONObject json) {
+        if (!super.encodeToJson(json)) {
+            return false;
+        }
+
+        try {
+            json.put(KEY_PLANET_TYPE, planetType.toString());
+
+            if (atmosphere > 0) {
+                json.put(KEY_ATMOSPHERE, (double) atmosphere);
+            }
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean decodeFromJson(JSONObject json) {
+        if (!super.decodeFromJson(json)) {
+            return false;
+        }
+
+        try {
+
+            PlanetType pt = PlanetType.PLANET;
+
+            if (json.has(KEY_PLANET_TYPE) && !json.isNull(KEY_PLANET_TYPE)) {
+                pt = PlanetType.valueOf(json.getString(KEY_PLANET_TYPE));
+            }
+
+            if (json.has(KEY_ATMOSPHERE) && !json.isNull(KEY_ATMOSPHERE)) {
+                float a = (float) json.getDouble(KEY_ATMOSPHERE);
+
+                setAtmosphere(a);
+            }
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
     }
 }

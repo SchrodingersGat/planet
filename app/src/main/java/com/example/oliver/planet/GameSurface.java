@@ -12,6 +12,8 @@ import android.graphics.PointF;
 import android.graphics.Path;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.util.Vector;
 
 /**
@@ -457,6 +459,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // Draw each planet
         for (int jj=0; jj<level.planets.size(); jj++) {
             Planet p = level.planets.get(jj);
+
+            p.drawOrbit(canvas);
 
             if (itemOnScreen(p, p.getTotalRadius())) {
                 p.draw(canvas);

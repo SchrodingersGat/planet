@@ -7,8 +7,12 @@ package com.example.oliver.planet;
 import android.graphics.PointF;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Canvas;
 import android.graphics.Color;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.json.JSONObject;
 
 public class WormholePair {
 
@@ -64,6 +68,52 @@ public class WormholePair {
         wormholeA.draw(canvas);
         wormholeB.draw(canvas);
 
+    }
+
+    /*
+    JSON keys
+     */
+    private final String KEY_WORMHOLE_A = "wormholeA";
+    private final String KEY_WORMHOLE_B = "wormholeB";
+
+    public boolean encodeToJson(JSONObject json) {
+
+        try {
+            JSONObject a = new JSONObject();
+            wormholeA.encodeToJson(a);
+
+            json.put(KEY_WORMHOLE_A, a);
+
+            JSONObject b = new JSONObject();
+            wormholeB.encodeToJson(b);
+            json.put(KEY_WORMHOLE_B, b);
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean decodeFromJson(JSONObject json) {
+        try {
+            if (json.has(KEY_WORMHOLE_A) && !json.isNull(KEY_WORMHOLE_A)) {
+                JSONObject a = json.getJSONObject(KEY_WORMHOLE_A);
+
+                wormholeA.decodeFromJson(a);
+            }
+
+            if (json.has(KEY_WORMHOLE_B) && !json.isNull(KEY_WORMHOLE_B)) {
+                JSONObject b = json.getJSONObject(KEY_WORMHOLE_B);
+
+                wormholeB.decodeFromJson(b);
+            }
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
     }
 
 }

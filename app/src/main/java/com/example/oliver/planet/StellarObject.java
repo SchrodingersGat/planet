@@ -6,6 +6,9 @@ package com.example.oliver.planet;
 
 import android.graphics.PointF;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class StellarObject extends GameObject {
 
     static final float MIN_RADIUS = 10;
@@ -45,5 +48,55 @@ public class StellarObject extends GameObject {
 
     public boolean containsPoint(PointF point) {
         return containsPoint(point.x, point.y);
+    }
+
+    /*
+    JSON Keys
+     */
+    protected final String KEY_POS_X = "x";
+    protected final String KEY_POS_Y = "y";
+    protected final String KEY_RADIUS = "radius";
+
+    public boolean encodeToJson(JSONObject json) {
+
+        try {
+
+            json.put(KEY_POS_X, (double) pos.x);
+            json.put(KEY_POS_Y, (double)pos.y);
+            json.put(KEY_RADIUS, (double)radius);
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean decodeFromJson(JSONObject json) {
+        try {
+            float x = pos.x;
+            float y = pos.y;
+            float r = radius;
+
+            if (json.has(KEY_POS_X) && !json.isNull(KEY_POS_X)) {
+                x = (float) json.getDouble(KEY_POS_X);
+            }
+
+            if (json.has(KEY_POS_Y) && !json.isNull(KEY_POS_Y)) {
+                y = (float) json.getDouble(KEY_POS_Y);
+            }
+
+            if (json.has(KEY_RADIUS) && !json.isNull(KEY_RADIUS)) {
+                r = (float) json.getDouble(KEY_RADIUS);
+            }
+
+            setPos(x, y);
+            setRadius(r);
+        }
+        catch (JSONException e) {
+            return false;
+        }
+
+        return true;
     }
 }
