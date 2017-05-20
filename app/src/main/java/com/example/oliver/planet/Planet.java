@@ -45,11 +45,15 @@ public class Planet extends StellarObject {
     /* Painters */
     private Paint pPlanet = new Paint();
     private Paint pAtmosphere = new Paint();
+    private Paint pOrbit = new Paint();
     private RadialGradient rgAtmosphere;
 
     private void setupPainters() {
         pPlanet.setStyle(Paint.Style.FILL_AND_STROKE);
 
+        pOrbit.setStyle(Paint.Style.STROKE);
+        pOrbit.setStrokeWidth(2);
+        pOrbit.setARGB(150, 150, 150, 150);
     }
 
     /*
@@ -84,9 +88,9 @@ public class Planet extends StellarObject {
 
         // Calculate the orbit velocity
         if (orbit != null) {
-            float W = (float) Math.sqrt(G * orbit.getMass() / Math.pow(orbitRadius, 3));
+            float W = (float) Math.sqrt(G * orbit.getMass() / Math.pow(orbitRadius, 2));
 
-            W /= 100;
+            W /= 2500;
 
             orbitVelocity = W;
         }
@@ -288,6 +292,11 @@ public class Planet extends StellarObject {
 
     public float getAtmosphere() { return atmosphere; }
 
+    /*
+    Return the mass of the planet.
+    Mass is used to calculate force exerted on the ship.
+    It is also used for calculating orbital periods.
+     */
     public double getMass() {
 
         double mass = G * radius;
@@ -310,12 +319,26 @@ public class Planet extends StellarObject {
         return mass;
     }
 
+    /*
+    Get the force that this planet exerts on the given point
+     */
     public double getForce(float x, float y) {
 
         return getMass() / distanceSquared(x, y);
     }
 
+    private void drawOrbit(Canvas canvas) {
+
+        canvas.drawCircle(orbit.getX(), orbit.getY(), orbitRadius, pOrbit);
+        canvas.drawLine(pos.x, pos.y, orbit.getX(), orbit.getY(), pOrbit);
+
+    }
+
     public void draw(Canvas canvas) {
+
+        if (orbit != null) {
+            drawOrbit(canvas);
+        }
 
         // Draw atmosphere for SUN type planet
         if (planetType == PlanetType.SUN && atmosphere > 0) {
