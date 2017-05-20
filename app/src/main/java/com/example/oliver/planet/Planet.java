@@ -42,7 +42,7 @@ public class Planet extends StellarObject {
     }
 
     // Acceleration constant
-    private final float G = 750.0f;
+    private final float G = 650.0f;
 
     /* Painters */
     private Paint pPlanet = new Paint();
@@ -76,31 +76,48 @@ public class Planet extends StellarObject {
     private float orbitStartingAngle = 0.0f;
     private boolean orbitDir = true;
 
-    public void orbitPlanet(Planet p, float r, float a, boolean dir) {
-
-        if (p == this) {
-            p = null;
-        }
+    public void orbitPlanet(Planet p) {
 
         orbit = p;
-        setOrbitRadius(r);
-        setOrbitStartingAngle(a);
 
-        orbitAngle = orbitStartingAngle;
+        if (orbit != null) {
+            initializeOrbit();
+        }
+    }
+
+    private void initializeOrbit() {
+
+        if (orbit == null) {
+            return;
+        }
+
+        double dx = pos.x - orbit.getX();
+        double dy = pos.y - orbit.getY();
+
+        double angle = Math.atan2(dy, dx);
+
+        double distance = orbit.distanceTo(pos.x, pos.y);
+
+        if (distance < MIN_ORBIT_RADIUS) {
+            distance = MIN_ORBIT_RADIUS;
+        }
+        else if (distance > MAX_ORBIT_RADIUS) {
+            distance = MAX_ORBIT_RADIUS;
+        }
 
         // Calculate the orbit velocity
-        if (orbit != null) {
-            float W = (float) Math.sqrt(G * orbit.getMass() / Math.pow(orbitRadius, 2));
+        float W = (float) Math.sqrt(G * orbit.getMass() / Math.pow(distance, 2));
+        W /= 2500;
 
-            W /= 2500;
+        orbitVelocity = W;
+        orbitStartingAngle = (float) angle;
+        orbitRadius = (float) distance;
 
-            orbitVelocity = W;
-        }
-        else {
-            orbitVelocity = 0;
-        }
+        // Finally, reset the position of this planet
+        double x = orbit.getX() + distance * Math.cos(angle);
+        double y = orbit.getY() + distance * Math.sin(angle);
 
-        setOrbitDirection(dir);
+        setPos((float) x, (float) y);
 
         resetOrbit();
     }
@@ -177,11 +194,13 @@ public class Planet extends StellarObject {
     }
 
     /* Orbiting constructor */
-    public Planet(Planet parent, float r, float rOrbit, float aOrbit, boolean dOrbit) {
-        pos.set(0, 0);
+    public Planet(Planet parent, float x, float y, float r) {
+
+        setPos(x, y);
         setRadius(r);
 
-        orbitPlanet(parent, rOrbit, aOrbit, dOrbit);
+        orbitPlanet(parent);
+        //initializeOrbit();
 
         init();
 
@@ -205,6 +224,16 @@ public class Planet extends StellarObject {
         updateAtmosphere();
     }
 
+    @Override
+    public void setUserPos(float x, float y) {
+
+        setPos(x, y);
+
+        if (orbit != null) {
+            orbitPlanet(orbit);
+        }
+    }
+
     /*
     Reset the planet to the level starting conditions
      */
@@ -220,7 +249,7 @@ public class Planet extends StellarObject {
         final int b = 50;
 
         int[] colors = {
-                Color.argb(150, r, g, b),
+                Color.argb(100, r, g, b),
                 Color.argb(50, r, g, b),
                 Color.argb(0, r, g, b)
         };
@@ -233,7 +262,7 @@ public class Planet extends StellarObject {
 
         float[] stops = {
                 radius / R,
-                (R - 50) / R,
+                (R - radius) / R,
                 1.0f
         };
 

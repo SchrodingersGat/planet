@@ -129,10 +129,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         level.planets.add(p);
 
         // Create a moon
-        Planet moon = new Planet(p, 30, 250, 0, true);
+        Planet moon = new Planet(p, p.getX() - 250, p.getY() - 250, 40);
         level.planets.add(moon);
 
-        moon = new Planet(p, 30, 400, (float) Math.PI * 0.8f, false);
+        moon = new Planet(p, p.getX()+550, p.getY()+550, 40);
         level.planets.add(moon);
 
         p = new Planet(500, 125, 10);
@@ -801,7 +801,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             case MotionEvent.ACTION_MOVE:
 
                 if (stellarObjectBeingDragged != null) {
-                    stellarObjectBeingDragged.setPos(worldPos.x, worldPos.y);
+                    stellarObjectBeingDragged.setUserPos(worldPos.x, worldPos.y);
                 }
                 else if (shipBeingDragged) {
 
