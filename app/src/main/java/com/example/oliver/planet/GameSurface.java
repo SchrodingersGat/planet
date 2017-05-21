@@ -135,7 +135,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         moon = new Planet(p, p.getX()+550, p.getY()+550, 40);
         level.planets.add(moon);
 
-        p = new Planet(500, 125, 10);
+        p = new Planet(500, 125, 70);
+        p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
 
         p = new Planet(800, 500, 90);

@@ -39,7 +39,7 @@ public class Ship extends GameObject {
     public float fuel = 0;
     private float thrust = 0;
     public boolean engineOn = false;
-    static final float MAX_THRUST = 0.65f;
+    static final float MAX_THRUST = 0.5f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
     static final float MAX_FUEL = 10000;
     static final float SUN_FUEL_RECHARGE = 0.5f;
