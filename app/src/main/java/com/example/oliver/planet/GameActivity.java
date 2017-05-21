@@ -13,7 +13,8 @@ import com.example.oliver.planet.GameSurface;
 
 public class GameActivity extends Activity {
 
-    GameSurface game;
+    private GameSurface game;
+    private GameLevel level;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -26,10 +27,17 @@ public class GameActivity extends Activity {
         // Set no title
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        game = new GameSurface(this);
+        level = new GameLevel();
+
+        game = new GameSurface(this, this, level);
+
         this.setContentView(game);
 
         //Log.i("activity", "created");
+    }
+
+    public void saveLevel() {
+        //TODO
     }
 
     @Override
@@ -53,5 +61,4 @@ public class GameActivity extends Activity {
 
         //Log.i("activity", "pause");
     }
-
 }

@@ -2,14 +2,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".LevelSelectorActivity">
+    tools:context=".LevelSelectorActivity"
+    android:orientation="vertical">
 
     <ListView
         android:id="@android:id/list"
-        android:divider="#AACCFF"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="0dp"
+        android:divider="#AACCFF"
+        android:dividerHeight="2dp"
+        android:layout_weight="1"
+        android:layout_gravity="top">
+
     </ListView>
+
+    <Button
+        android:id="@+id/button_new_level"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New Level"
+        android:layout_gravity="bottom"
+        android:onClick="newLevel"/>
+
 
 </LinearLayout>

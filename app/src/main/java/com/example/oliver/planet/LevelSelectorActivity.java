@@ -45,4 +45,8 @@ public class LevelSelectorActivity extends ListActivity {
         startActivity(intent);
     }
 
+    public void newLevel(View view) {
+        Log.i("click", "New level!");
+    }
+
 }

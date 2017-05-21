@@ -1,5 +1,6 @@
 package com.example.oliver.planet;
 
+import android.app.Activity;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.content.Context;
@@ -31,6 +32,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     public GameThread gameThread;
     public GameLevel level;
+    private GameActivity activity;
 
     private StellarObject stellarObjectBeingDragged = null;
     private boolean mapBeingDragged = false;
@@ -103,8 +105,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         pFuelBarOutline.setStrokeWidth(5);
     }
 
-    public GameSurface(Context context) {
+    public GameSurface(Context context, GameActivity activity, GameLevel level) {
         super(context);
+
+        this.activity = activity;
+        this.level = level;
 
         setupPainters();
 
@@ -132,7 +137,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         Planet moon = new Planet(p, p.getX() - 250, p.getY() - 250, 40);
         level.planets.add(moon);
 
-        moon = new Planet(p, p.getX()+550, p.getY()+550, 40);
+        moon = new Planet(p, p.getX() + 550, p.getY() + 550, 40);
         level.planets.add(moon);
 
         p = new Planet(500, 125, 70);
@@ -170,7 +175,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         WormholePair whp = new WormholePair(
                 new PointF(-1000, -1000),
-                new PointF( 1000,  1000)
+                new PointF(1000, 1000)
         );
 
         level.wormholes.add(whp);
@@ -180,7 +185,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     void reset() {
         level.reset();
-        mapOffset.set(0,0);
+        mapOffset.set(0, 0);
     }
 
     void updateScreenSize() {
@@ -195,7 +200,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         SCREEN_MAX = Math.max(WIDTH, HEIGHT);
 
         // Calculate angle to the first corner
-        CORNER_ANGLE = Math.atan2(HEIGHT/2, WIDTH/2);
+        CORNER_ANGLE = Math.atan2(HEIGHT / 2, WIDTH / 2);
     }
 
     void updateShipTouch(PointF screenPos) {
@@ -204,21 +209,20 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         float dist = level.ship.distanceTo(worldPos.x, worldPos.y);
         double angle = Math.atan2(
-                        level.ship.getY() - worldPos.y,
-                        level.ship.getX() - worldPos.x);
+                level.ship.getY() - worldPos.y,
+                level.ship.getX() - worldPos.x);
 
         if (shipBeingDragged) {
             if (dist > Ship.SELECTION_RADIUS_INNER) {
                 level.ship.setTargetAngle(angle); //0.25 * Math.PI); // angle);
             }
             if (level.ship.isReleased() &&
-                !level.ship.hasCrashed() &&
-                dist > Ship.SELECTION_RADIUS_OUTER) {
+                    !level.ship.hasCrashed() &&
+                    dist > Ship.SELECTION_RADIUS_OUTER) {
 
                 level.ship.turnEngineOn();
                 level.ship.setThrust((dist - Ship.SELECTION_RADIUS_OUTER) / 500);
-            }
-            else {
+            } else {
                 level.ship.turnEngineOff();
             }
         }
@@ -236,8 +240,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // If a touch-event is continuing
         if (shipBeingDragged) {
             updateShipTouch(touchLast);
-        }
-        else {
+        } else {
             level.ship.turnEngineOff();
         }
 
@@ -247,8 +250,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         //TODO - Make this more graceful
         if (level.ship.distanceTo(0, 0) > GameLevel.LEVEL_BOUNDS) {
             reset();
-        }
-        else if (level.ship.hasCrashed()) {
+        } else if (level.ship.hasCrashed()) {
             reset();
         }
 
@@ -273,14 +275,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         if (lookAwayTimer > 0) {
             lookAwayTimer--;
-        }
-        else if (mapBeingDragged || shipBeingDragged) {
+        } else if (mapBeingDragged || shipBeingDragged) {
             // Don't move screen in these cases
-        }
-        else if (stellarObjectBeingDragged != null) {
+        } else if (stellarObjectBeingDragged != null) {
             // Don't move screen if planet is being dragged
-        }
-        else {
+        } else {
             double d = (mapOffset.x * mapOffset.x) + (mapOffset.y * mapOffset.y);
 
             if (d > EPSILOM) {
@@ -305,7 +304,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         if (!level.ship.isReleased()) {
-            return false;
+            //return false;
         }
 
         if (mapBeingDragged || shipBeingDragged || stellarObjectBeingDragged != null) {
@@ -365,38 +364,49 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         // Draw pause button
 
-        if (!m_paused) {
+        if (level.ship.isReleased()) {
 
-            // Draw Pause Button
-            canvas.drawRect(
-                    pb.x - BUTTON_SIZE / 2,
-                    pb.y - BUTTON_SIZE / 2,
-                    pb.x - BUTTON_SIZE / 6,
-                    pb.y + BUTTON_SIZE / 2,
-                    pMenu);
+            if (!m_paused) {
 
-            canvas.drawRect(
-                    pb.x + BUTTON_SIZE / 6,
-                    pb.y - BUTTON_SIZE / 2,
-                    pb.x + BUTTON_SIZE / 2,
-                    pb.y + BUTTON_SIZE / 2,
-                    pMenu);
+                // Draw Pause Button
+                canvas.drawRect(
+                        pb.x - BUTTON_SIZE / 2,
+                        pb.y - BUTTON_SIZE / 2,
+                        pb.x - BUTTON_SIZE / 6,
+                        pb.y + BUTTON_SIZE / 2,
+                        pMenu);
+
+                canvas.drawRect(
+                        pb.x + BUTTON_SIZE / 6,
+                        pb.y - BUTTON_SIZE / 2,
+                        pb.x + BUTTON_SIZE / 2,
+                        pb.y + BUTTON_SIZE / 2,
+                        pMenu);
+            } else {
+
+                // Draw Play Button
+                Path p = new Path();
+                p.moveTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE / 2);
+                p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y + BUTTON_SIZE / 2);
+                p.lineTo(pb.x + BUTTON_SIZE / 2, pb.y);
+                p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE / 2);
+
+                canvas.drawPath(p, pMenu);
+
+                // Draw Reset Button
+                PointF rst = getResetButtonLocation();
+
+                canvas.drawCircle(rst.x, rst.y, BUTTON_SIZE / 2, pMenu);
+            }
         }
-        else {
 
-            // Draw Play Button
-            Path p = new Path();
-            p.moveTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE / 2);
-            p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y + BUTTON_SIZE / 2);
-            p.lineTo(pb.x + BUTTON_SIZE / 2, pb.y);
-            p.lineTo(pb.x - BUTTON_SIZE / 3, pb.y - BUTTON_SIZE /2 );
+        // Draw the save button
+        if (!level.ship.isReleased()) {
+            float x = WIDTH / 2;
+            float y = BUTTON_SIZE;
 
-            canvas.drawPath(p, pMenu);
-
-            // Draw Reset Button
-            PointF rst = getResetButtonLocation();
-
-            canvas.drawCircle(rst.x, rst.y, BUTTON_SIZE / 2, pMenu);
+            canvas.drawRect(x - 10, y - 50, x + 10, y + 50, pMenu);
+            canvas.drawRect(x - 50, y - 10, x + 50, y + 10, pMenu);
         }
     }
 
@@ -407,7 +417,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float BAR_O = 15;
 
         // Fuel ratio
-        float FR =  level.ship.getFuelRatio();
+        float FR = level.ship.getFuelRatio();
 
         // Draw the fuel
         canvas.drawRect(BAR_O, BAR_O, BAR_O + BAR_W * FR, BAR_O + BAR_H, pFuelBarInterior);
@@ -434,39 +444,36 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         L.setColor(Color.RED);
 
         // Offset by correct position
-        canvas.translate(WIDTH/2, HEIGHT/2);
+        canvas.translate(WIDTH / 2, HEIGHT / 2);
         canvas.translate(mapOffset.x, mapOffset.y);
         canvas.translate(-level.ship.pos.x, -level.ship.pos.y);
 
         // Draw wormholes
-        for (int ii=0; ii<level.wormholes.size(); ii++) {
+        for (int ii = 0; ii < level.wormholes.size(); ii++) {
             WormholePair wh = level.wormholes.get(ii);
 
             if (itemOnScreen(wh.wormholeA, Wormhole.WORMHOLE_RADIUS)) {
                 wh.wormholeA.draw(canvas);
-            }
-            else {
+            } else {
                 arrows.add(new OffScreenArrow(wh.wormholeA.getX(), wh.wormholeA.getY(), Color.WHITE, OffScreenArrow.ArrowShape.CIRCLE));
             }
 
             if (itemOnScreen(wh.wormholeB, Wormhole.WORMHOLE_RADIUS)) {
                 wh.wormholeB.draw(canvas);
-            }
-            else {
+            } else {
                 arrows.add(new OffScreenArrow(wh.wormholeB.getX(), wh.wormholeB.getY(), Color.WHITE, OffScreenArrow.ArrowShape.CIRCLE));
             }
         }
 
         // Draw each planet
-        for (int jj=0; jj<level.planets.size(); jj++) {
+        for (int jj = 0; jj < level.planets.size(); jj++) {
             Planet p = level.planets.get(jj);
 
             p.drawOrbit(canvas);
 
             if (itemOnScreen(p, p.getTotalRadius())) {
                 p.draw(canvas);
-            }
-            else {
+            } else {
                 arrows.add(new OffScreenArrow(
                         p.getX(),
                         p.getY(),
@@ -476,15 +483,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         // Draw each star
-        for (int kk=0; kk<level.stars.size(); kk++) {
+        for (int kk = 0; kk < level.stars.size(); kk++) {
 
             Star s = level.stars.get(kk);
 
             if (itemOnScreen(s, s.getRadius())) {
                 s.draw(canvas);
-            }
-            else
-            {
+            } else {
                 arrows.add(new OffScreenArrow(
                         s.getX(),
                         s.getY(),
@@ -496,8 +501,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // Draw the endpoint
         if (itemOnScreen(level.endZone, Galaxy.GALAXY_RADIUS)) {
             level.endZone.draw(canvas);
-        }
-        else {
+        } else {
             arrows.add(new OffScreenArrow(
                     level.endZone.getX(),
                     level.endZone.getY(),
@@ -511,15 +515,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         // Draw the ship
         if (itemOnScreen(level.ship, Ship.SHIP_RADIUS)) {
             level.ship.draw(canvas);
-        }
-        else
-        {
+        } else {
             arrows.add(new OffScreenArrow(level.ship.getX(), level.ship.getY(), Color.RED, OffScreenArrow.ArrowShape.DIAMOND));
         }
 
         // Draw the 'release point' of the ship
         if (level.ship.releasePoint != null &&
-            !level.ship.isReleased()) {
+                !level.ship.isReleased()) {
             PointF rp = level.ship.releasePoint;
 
             canvas.drawCircle(-rp.x, -rp.y, 20, L);
@@ -577,7 +579,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         Path path = new Path();
 
-        for (int i=0; i<arrows.size(); i++) {
+        for (int i = 0; i < arrows.size(); i++) {
             arrow = arrows.get(i);
 
             pArrow.setColor(arrow.color);
@@ -601,11 +603,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     break;
                 case DIAMOND:
                     path.reset();
-                    path.moveTo(x, y-a);
-                    path.lineTo(x-a, y);
-                    path.lineTo(x, y+a);
-                    path.lineTo(x+a, y);
-                    path.lineTo(x, y-a);
+                    path.moveTo(x, y - a);
+                    path.lineTo(x - a, y);
+                    path.lineTo(x, y + a);
+                    path.lineTo(x + a, y);
+                    path.lineTo(x, y - a);
 
                     canvas.drawPath(path, pArrow);
                     break;
@@ -653,12 +655,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
         // Top side of screen
         else if (angle >= CORNER_ANGLE && angle <= (Math.PI - CORNER_ANGLE)) {
-            x = X_MID + Y_MID * Math.tan(Math.PI/2 - angle);
+            x = X_MID + Y_MID * Math.tan(Math.PI / 2 - angle);
             y = 0;
         }
         // Bottom side of screen
         else if (angle <= -CORNER_ANGLE && angle >= (-Math.PI + CORNER_ANGLE)) {
-            x = X_MID - Y_MID * Math.tan(-Math.PI/2 - angle);
+            x = X_MID - Y_MID * Math.tan(-Math.PI / 2 - angle);
             y = HEIGHT;
         }
 
@@ -683,9 +685,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float y = object.getY();
 
         return TL.x < (x + radius) &&
-               BR.x > (x - radius) &&
-               TL.y < (y + radius) &&
-               BR.y > (y - radius);
+                BR.x > (x - radius) &&
+                TL.y < (y + radius) &&
+                BR.y > (y - radius);
     }
 
     @Override
@@ -712,14 +714,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         gameThread.setRunning(false);
 
-        while(retry) {
+        while (retry) {
             try {
 
                 // Parent thread must wait until the end of GameThread.
                 this.gameThread.join();
                 retry = false;
-            }
-            catch(InterruptedException e)  {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -788,13 +789,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     // Play / Pause Button
                     if (testPositionHit(getPauseButtonLocation(), x, y, BUTTON_SIZE)) {
                         setPaused(!m_paused);
-                    }
-                    else if (m_paused && testPositionHit(getBackButtonLocation(), x, y, BUTTON_SIZE)) {
+                    } else if (m_paused && testPositionHit(getBackButtonLocation(), x, y, BUTTON_SIZE)) {
                         //TODO
-                    }
-                    else if (m_paused && testPositionHit(getResetButtonLocation(), x, y, BUTTON_SIZE)) {
+                    } else if (m_paused && testPositionHit(getResetButtonLocation(), x, y, BUTTON_SIZE)) {
                         setPaused(false);
                         reset();
+                    } else if (!level.ship.isReleased() && testPositionHit(new PointF(WIDTH / 2, BUTTON_SIZE), x, y, BUTTON_SIZE)) {
+                        saveLevel();
                     }
                 }
 
@@ -803,13 +804,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 if (stellarObjectBeingDragged != null) {
                     stellarObjectBeingDragged.setUserPos(worldPos.x, worldPos.y);
-                }
-                else if (shipBeingDragged) {
+                } else if (shipBeingDragged) {
 
-                }
-                else {
+                } else {
                     mapBeingDragged = true;
-                    addMapOffset(x-touchLast.x, y-touchLast.y);
+                    addMapOffset(x - touchLast.x, y - touchLast.y);
                 }
 
                 break;
@@ -818,8 +817,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 if (level.ship.isEngineOn()) {
                     level.ship.turnEngineOff();
-                }
-                else if (shipBeingDragged && !level.ship.isReleased()) {
+                } else if (shipBeingDragged && !level.ship.isReleased()) {
 
                     if (dShip > Ship.SELECTION_RADIUS_OUTER) {
                         //Log.i("surface", "releasing ship");
@@ -878,5 +876,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         } else {
             //Log.i("surface", "set pause false");
         }
+    }
+
+    private void saveLevel() {
+        Log.i("Info","Save level button");
+
+        if (activity == null) {
+            return;
+        }
+
+        activity.saveLevel();
     }
 }
