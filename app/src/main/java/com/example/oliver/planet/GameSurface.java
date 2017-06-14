@@ -12,6 +12,8 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Path;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -33,6 +35,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     public GameThread gameThread;
     public GameLevel level;
     private GameActivity activity;
+    private Context context;
 
     private StellarObject stellarObjectBeingDragged = null;
     private boolean mapBeingDragged = false;
@@ -108,6 +111,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     public GameSurface(Context context, GameActivity activity, GameLevel level) {
         super(context);
 
+        this.context = context;
         this.activity = activity;
         this.level = level;
 
@@ -757,6 +761,35 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         return new PointF(x, y);
     }
 
+    /* Long Press Handling
+     * TODO: Clean this up
+     */
+    private final int LONG_PRESS_TIMER = 500;
+    private final int LONG_PRESS_DIST = 400;
+    private Handler m_longPressHandler = new Handler();
+    protected PointF m_longPressPoint = new PointF();
+
+    private Runnable m_longPressRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Toast.makeText(GameSurface.this.getContext(), "Long!", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    protected void startLongPress(float x, float y) {
+
+        // First cancel any pending presses
+        stopLongPress();
+
+        m_longPressPoint.set(x, y);
+
+        m_longPressHandler.postDelayed(m_longPressRunnable, LONG_PRESS_TIMER);
+    }
+
+    protected void stopLongPress() {
+        m_longPressHandler.removeCallbacks(m_longPressRunnable);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -764,12 +797,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = event.getX();
         float y = event.getY();
 
+        double d;
+
         PointF worldPos = toGrid(getMapCoordsFromScreenPos(x, y), 20);
 
         float dShip = level.ship.distanceTo(worldPos.x, worldPos.y);
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+
+                startLongPress(x, y);
 
                 /* Test for item being clicked */
                 stellarObjectBeingDragged = level.testStellarObjectHit(worldPos.x, worldPos.y);
@@ -802,6 +839,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 break;
             case MotionEvent.ACTION_MOVE:
 
+                // Test if long press should be cancelled
+                d = Math.pow(x - m_longPressPoint.x, 2) + Math.pow(y - m_longPressPoint.y, 2);
+
+                if (d > LONG_PRESS_DIST) {
+                    stopLongPress();
+                }
+
                 if (stellarObjectBeingDragged != null) {
                     stellarObjectBeingDragged.setUserPos(worldPos.x, worldPos.y);
                 } else if (shipBeingDragged) {
@@ -814,6 +858,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 break;
 
             case MotionEvent.ACTION_UP:
+
+                stopLongPress();
 
                 if (level.ship.isEngineOn()) {
                     level.ship.turnEngineOff();
@@ -833,11 +879,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_OUTSIDE:
+                stopLongPress();
                 stellarObjectBeingDragged = null;
                 mapBeingDragged = false;
                 stopDraggingShip();
                 break;
             default:
+                stopLongPress();
                 break;
         }
 

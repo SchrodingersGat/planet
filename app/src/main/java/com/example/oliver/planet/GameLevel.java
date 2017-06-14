@@ -53,9 +53,11 @@ public class GameLevel {
         stars = new Vector<Star>();
         wormholes = new Vector<WormholePair>();
 
+        // All good levels should have a ship
         ship = new Ship();
 
-        endZone = new Galaxy(0, 0);
+        // Default position for end-zone
+        endZone = new Galaxy(0, 500);
     }
 
     /* Clear all game objects from the level
