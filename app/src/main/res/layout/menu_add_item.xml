@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/addNewPlanet"
+        android:title="Planet"/>
+
+    <item
+        android:id="@+id/addNewStar"
+        android:title="Star"/>
+
+    <item
+        android:id="@+id/addNewWormhole"
+        android:title="Wormhole"/>
+
+</menu>

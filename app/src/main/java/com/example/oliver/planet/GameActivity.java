@@ -2,14 +2,9 @@ package com.example.oliver.planet;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
 import android.util.Log;
-
-import com.example.oliver.planet.GameSurface;
 
 public class GameActivity extends Activity {
 

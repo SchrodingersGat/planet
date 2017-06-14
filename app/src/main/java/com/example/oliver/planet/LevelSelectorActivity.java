@@ -1,7 +1,6 @@
 package com.example.oliver.planet;
 
 import android.app.ListActivity;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;

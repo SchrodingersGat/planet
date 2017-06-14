@@ -1,6 +1,7 @@
 package com.example.oliver.planet;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.content.Context;
@@ -12,10 +13,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Path;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
-
-import org.json.JSONObject;
 
 import java.util.Vector;
 
@@ -108,12 +106,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         pFuelBarOutline.setStrokeWidth(5);
     }
 
-    public GameSurface(Context context, GameActivity activity, GameLevel level) {
+    public GameSurface(Context context, GameActivity activity, GameLevel lvl) {
         super(context);
 
         this.context = context;
         this.activity = activity;
-        this.level = level;
+        this.level = lvl;
 
         setupPainters();
 
@@ -130,8 +128,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         setFocusable(true);
 
-        level = new GameLevel();
-
         Planet p;
 
         p = new Planet(-450, -250, 90);
@@ -147,14 +143,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         p = new Planet(500, 125, 70);
         p.setPlanetType(Planet.PlanetType.REPULSAR);
         level.planets.add(p);
-
-        p = new Planet(800, 500, 90);
-        p.setPlanetType(Planet.PlanetType.REPULSAR);
-        level.planets.add(p);
-
-        p = new Planet(-4800, -800, 130);
-        p.setPlanetType(Planet.PlanetType.REPULSAR);
-        //level.planets.add(p);
 
         p = new Planet(-1200, 750, 150);
         p.setPlanetType(Planet.PlanetType.SUN);
@@ -772,16 +760,49 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private Runnable m_longPressRunnable = new Runnable() {
         @Override
         public void run() {
-            Toast.makeText(GameSurface.this.getContext(), "Long!", Toast.LENGTH_SHORT).show();
+
+            if (shipBeingDragged) {
+                return;
+            }
+
+            float x = m_longPressPoint.x;
+            float y = m_longPressPoint.y;
+
+            // Planet?
+            Planet p = level.testPlanetHit(x, y);
+
+            if (p != null) {
+                showDialogEditPlanet(p);
+                return;
+            }
+
+            // Star ?
+            Star s = level.testStarHit(x, y);
+
+            if (s != null) {
+                showDialogEditStar(s);
+                return;
+            }
+
+            // Wormhole?
+            Wormhole w = level.testWormholeHit(x, y);
+
+            if (w != null) {
+                showDialogEditWormhole(w);
+                return;
+            }
+
+            // Elsewise
+            showDialogAddItem();
         }
     };
 
-    protected void startLongPress(float x, float y) {
+    protected void startLongPress(PointF pos) {
 
         // First cancel any pending presses
         stopLongPress();
 
-        m_longPressPoint.set(x, y);
+        m_longPressPoint.set(pos.x, pos.y);
 
         m_longPressHandler.postDelayed(m_longPressRunnable, LONG_PRESS_TIMER);
     }
@@ -806,8 +827,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
 
-                startLongPress(x, y);
-
+                startLongPress(worldPos);
                 /* Test for item being clicked */
                 stellarObjectBeingDragged = level.testStellarObjectHit(worldPos.x, worldPos.y);
 
@@ -817,6 +837,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 if (!m_paused && level.ship.distanceTo(worldPos.x, worldPos.y) < Ship.SELECTION_RADIUS_OUTER) {
                     startDraggingShip();
+                    stopLongPress();
                     break;
                 }
 
@@ -840,7 +861,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             case MotionEvent.ACTION_MOVE:
 
                 // Test if long press should be cancelled
-                d = Math.pow(x - m_longPressPoint.x, 2) + Math.pow(y - m_longPressPoint.y, 2);
+                d = Math.pow(worldPos.x - m_longPressPoint.x, 2) + Math.pow(worldPos.y - m_longPressPoint.y, 2);
 
                 if (d > LONG_PRESS_DIST) {
                     stopLongPress();
@@ -934,5 +955,46 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         activity.saveLevel();
+    }
+
+    /* Game popups */
+
+    private void showDialogAddItem() {
+
+        LayoutInflater inflater = activity.getLayoutInflater();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+        builder.setTitle("Add Item");
+
+        builder.setView(inflater.inflate(R.layout.dlg_add_item, null));
+
+        AlertDialog dlg = builder.create();
+
+        dlg.show();
+    }
+
+    private void showDialogEditPlanet(Planet p) {
+        if (p == null) {
+            return;
+        }
+
+        Toast.makeText(getContext(), "Planet", Toast.LENGTH_SHORT);
+    }
+
+    private void showDialogEditStar(Star s) {
+        if (s == null) {
+            return;
+        }
+
+        Toast.makeText(getContext(), "Star", Toast.LENGTH_SHORT);
+    }
+
+    private void showDialogEditWormhole(Wormhole w) {
+        if (w == null) {
+            return;
+        }
+
+        Toast.makeText(getContext(), "Wormhole", Toast.LENGTH_SHORT);
     }
 }

@@ -141,8 +141,7 @@ public class GameLevel {
 
     }
 
-    public StellarObject testStellarObjectHit(float x, float y) {
-
+    public Planet testPlanetHit(float x, float y) {
         // Test each planet
         for (int p=0; p<planets.size(); p++) {
             if (planets.get(p).containsPoint(x, y)) {
@@ -150,13 +149,21 @@ public class GameLevel {
             }
         }
 
+        return null;
+    }
+
+    public Star testStarHit(float x, float y) {
         // Test each star
         for (int s=0; s<stars.size(); s++) {
-            if (stars.get(s).containsPoint(x, y)) {
+            if (stars.get(s).testCollection(x, y)) {
                 return stars.get(s);
             }
         }
 
+        return null;
+    }
+
+    public Wormhole testWormholeHit(float x, float y) {
         // Test wormholes
         for (int w=0; w<wormholes.size(); w++) {
             if (wormholes.get(w).wormholeA.containsPoint(x, y)) {
@@ -165,6 +172,32 @@ public class GameLevel {
             if (wormholes.get(w).wormholeB.containsPoint(x, y)) {
                 return wormholes.get(w).wormholeB;
             }
+        }
+
+        return null;
+    }
+
+    public StellarObject testStellarObjectHit(float x, float y) {
+
+        // Planet hit?
+        Planet p = testPlanetHit(x, y);
+
+        if (p != null) {
+            return p;
+        }
+
+        // Star hit?
+        Star s = testStarHit(x, y);
+
+        if (s != null) {
+            return s;
+        }
+
+        // Wormhole hit?
+        Wormhole w = testWormholeHit(x, y);
+
+        if (w != null) {
+            return w;
         }
 
         // Test end-soze

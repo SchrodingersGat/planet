@@ -7,12 +7,13 @@ package com.example.oliver.planet;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Canvas;
+import android.graphics.Path;
 
 public class Star extends StellarObject {
 
     static final int STAR_COLOR = Color.rgb(245, 233, 100);
 
-    static final float STAR_RADIUS = 15;
+    static final float STAR_RADIUS = 25;
     static final float STAR_COLLECTION_RADIUS = 35;
 
     private boolean collected;
@@ -54,6 +55,19 @@ public class Star extends StellarObject {
             return;
         }
 
-        canvas.drawCircle(getX(), getY(), STAR_RADIUS, pStar);
+        Path p = new Path();
+
+        float x = getX();
+        float y = getY();
+        float r = (float) STAR_RADIUS;
+
+        p.moveTo(x, y-r);
+        p.lineTo(x-0.5f*r, y+r);
+        p.lineTo(x+r, y-0.25f*r);
+        p.lineTo(x-r, y-0.25f*r);
+        p.lineTo(x+0.5f*r, y+r);
+        p.lineTo(x, y-r);
+
+        canvas.drawPath(p, pStar);
     }
 }
