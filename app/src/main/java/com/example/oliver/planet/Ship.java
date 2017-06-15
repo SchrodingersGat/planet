@@ -25,7 +25,7 @@ public class Ship extends GameObject {
     public PointF releasePoint;
 
     // Ship attributes
-    static final float MAX_SPEED = 17.5f;
+    static final float MAX_SPEED = 12.5f;
     final private float maxSpeedSquared = MAX_SPEED * MAX_SPEED;
 
     // Ship speed
@@ -39,7 +39,7 @@ public class Ship extends GameObject {
     public float fuel = 0;
     private float thrust = 0;
     public boolean engineOn = false;
-    static final float MAX_THRUST = 0.5f;
+    static final float MAX_THRUST = 0.35f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
     static final float MAX_FUEL = 10000;
     static final float SUN_FUEL_RECHARGE = 0.5f;
