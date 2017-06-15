@@ -76,6 +76,10 @@ public class Planet extends StellarObject {
     private float orbitStartingAngle = 0.0f;
     private boolean orbitDir = true;
 
+    public Planet getOrbitParent() {
+        return orbit;
+    }
+
     public void orbitPlanet(Planet p) {
 
         orbit = p;
@@ -283,6 +287,36 @@ public class Planet extends StellarObject {
 
     public PlanetType getPlanetType() {
         return planetType;
+    }
+
+    public float getMinAllowableRadius() {
+        switch (planetType) {
+            default:
+                return MIN_RADIUS;
+            case PLANET:
+                return MIN_PLANET_RADIUS;
+            case SUN:
+                return MIN_SUN_RADIUS;
+            case REPULSAR:
+                return MIN_REPULSAR_RADIUS;
+            case BLACK_HOLE:
+                return MIN_BLACKHOLE_RADIUS;
+        }
+    }
+
+    public float getMaxAllowableRadius() {
+        switch (planetType) {
+            default:
+                return MAX_RADIUS;
+            case PLANET:
+                return MAX_PLANET_RADIUS;
+            case SUN:
+                return MAX_SUN_RADIUS;
+            case REPULSAR:
+                return MAX_REPULSAR_RADIUS;
+            case BLACK_HOLE:
+                return MAX_BLACKHOLE_RADIUS;
+        }
     }
 
     public int getSimpleColor() {
