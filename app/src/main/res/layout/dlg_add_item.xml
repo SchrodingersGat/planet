@@ -7,17 +7,28 @@
         android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Planet" />
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:text="Planet"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="30sp" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Star" />
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:text="Star"
+        android:textColor="#ffcc33"
+        android:textSize="30sp" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wormhole" />
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:text="Wormhole"
+        android:textSize="30sp" />
 </LinearLayout>
