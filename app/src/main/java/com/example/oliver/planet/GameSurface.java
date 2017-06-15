@@ -807,6 +807,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     protected void startLongPress(PointF pos) {
 
+        // Check that it makes sense to start a long press action now
+        if (level.ship.isReleased()) {
+            return;
+        }
+
         // First cancel any pending presses
         stopLongPress();
 
@@ -895,6 +900,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 } else if (shipBeingDragged && !level.ship.isReleased()) {
 
                     if (dShip > Ship.SELECTION_RADIUS_OUTER) {
+
+                        // Cancel any pending long-press actions
+                        cancelLongPress();
+
                         //Log.i("surface", "releasing ship");
                         level.ship.release(new PointF(
                                 level.ship.getX() - worldPos.x,
