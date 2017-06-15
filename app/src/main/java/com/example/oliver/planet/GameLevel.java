@@ -141,6 +141,44 @@ public class GameLevel {
 
     }
 
+    // Remove a planet from the level
+    // Also remove any 'moons' of that planet
+    public void removePlanet(Planet p) {
+
+        int idx = 0;
+
+        while (idx < planets.size()) {
+            if (planets.get(idx) == p) {
+                planets.remove(idx);
+                continue;
+            }
+
+            if (planets.get(idx).getOrbitParent() == p) {
+                planets.remove(idx);
+                continue;
+            }
+
+            idx++;
+        }
+
+        for (int i=0; i<planets.size(); i++) {
+            if (planets.get(i) == p) {
+                planets.remove(i);
+                break;
+            }
+        }
+    }
+
+    // Remove a star from the level
+    public void removeStar(Star s) {
+        for (int i=0; i<stars.size(); i++) {
+            if (stars.get(i) == s) {
+                stars.remove(i);
+                break;
+            }
+        }
+    }
+
     public Planet testPlanetHit(float x, float y) {
         // Test each planet
         for (int p=0; p<planets.size(); p++) {
@@ -175,6 +213,10 @@ public class GameLevel {
         }
 
         return null;
+    }
+
+    public boolean testEndzoneHit(float x, float y) {
+        return endZone.containsPoint(x, y);
     }
 
     public StellarObject testStellarObjectHit(float x, float y) {
