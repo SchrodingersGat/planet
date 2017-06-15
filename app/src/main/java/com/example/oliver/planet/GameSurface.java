@@ -1,6 +1,8 @@
 package com.example.oliver.planet;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -13,6 +15,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Path;
 import android.util.Log;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.util.Vector;
@@ -792,7 +795,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 return;
             }
 
-            // Elsewise
+            // End-zone?
+            if (level.testEndzoneHit(x, y)) {
+                //TODO
+            }
+
+            // Else
             showDialogAddItem();
         }
     };
@@ -979,7 +987,59 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        Toast.makeText(getContext(), "Planet", Toast.LENGTH_SHORT);
+        final Planet planet = p;
+
+        final float RAD_MIN = planet.getMinAllowableRadius();
+        final float RAD_MAX = planet.getMaxAllowableRadius();
+        final float RAD_DEL = RAD_MAX - RAD_MIN;
+
+        LayoutInflater inflater = activity.getLayoutInflater();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+        builder.setTitle("Edit Planet");
+
+        builder.setView(inflater.inflate(R.layout.dlg_edit_planet, null));
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                // Update planet values
+                //SeekBar slider = (SeekBar) findViewById(R.id.planetSizeSlider);
+
+                //planet.setRadius(RAD_MIN + (float) slider.getProgress());
+
+            }
+        });
+
+        builder.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                // Delete the planet
+                level.removePlanet(planet);
+
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        AlertDialog dlg = builder.create();
+
+        // Fill the dialog values
+        /*
+        SeekBar slider = (SeekBar) dlg.findViewById(R.id.planetSizeSlider);
+
+        slider.setMax((int) RAD_DEL);
+        slider.setProgress((int) ((planet.getRadius() - RAD_MIN) / RAD_DEL));
+        */
+        dlg.show();
     }
 
     private void showDialogEditStar(Star s) {
@@ -987,7 +1047,24 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        Toast.makeText(getContext(), "Star", Toast.LENGTH_SHORT);
+        final Star star = s;
+
+        LayoutInflater inflater = activity.getLayoutInflater();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+        builder.setTitle("Edit Star");
+
+        builder.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                level.removeStar(star);
+            }
+        });
+
+        AlertDialog dlg = builder.create();
+
+        dlg.show();
     }
 
     private void showDialogEditWormhole(Wormhole w) {
