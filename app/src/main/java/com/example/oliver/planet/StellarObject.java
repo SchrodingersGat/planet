@@ -15,16 +15,19 @@ public class StellarObject extends GameObject {
     static final float MAX_RADIUS = 2500;
 
     static final float MIN_PLANET_RADIUS = 25;
-    static final float MAX_PLANET_RADIUS = 100;
+    static final float MAX_PLANET_RADIUS = 200;
 
-    static final float MIN_SUN_RADIUS = 75;
-    static final float MAX_SUN_RADIUS = 250;
+    static final float MIN_SUN_RADIUS = 125;
+    static final float MAX_SUN_RADIUS = 500;
 
     static final float MIN_BLACKHOLE_RADIUS = 15;
-    static final float MAX_BLACKHOLE_RADIUS = 50;
+    static final float MAX_BLACKHOLE_RADIUS = 100;
 
     static final float MIN_REPULSAR_RADIUS = 25;
-    static final float MAX_REPULSAR_RADIUS = 100;
+    static final float MAX_REPULSAR_RADIUS = 150;
+
+    static final float MIN_MOON_RADIUS = 25;
+    static final float MAX_MOON_RADIUS = 75;
 
     protected float radius = 1.0f;
 

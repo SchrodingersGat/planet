@@ -42,7 +42,7 @@ public class Planet extends StellarObject {
     }
 
     // Acceleration constant
-    private final float G = 650.0f;
+    private final float G = 500.0f;
 
     /* Painters */
     private Paint pPlanet = new Paint();
@@ -301,6 +301,8 @@ public class Planet extends StellarObject {
                 return MIN_REPULSAR_RADIUS;
             case BLACK_HOLE:
                 return MIN_BLACKHOLE_RADIUS;
+            case MOON:
+                return MIN_MOON_RADIUS;
         }
     }
 
@@ -316,6 +318,8 @@ public class Planet extends StellarObject {
                 return MAX_REPULSAR_RADIUS;
             case BLACK_HOLE:
                 return MAX_BLACKHOLE_RADIUS;
+            case MOON:
+                return MAX_MOON_RADIUS;
         }
     }
 
