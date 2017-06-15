@@ -989,27 +989,19 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         final Planet planet = p;
 
-        final float RAD_MIN = planet.getMinAllowableRadius();
-        final float RAD_MAX = planet.getMaxAllowableRadius();
-        final float RAD_DEL = RAD_MAX - RAD_MIN;
-
-        LayoutInflater inflater = activity.getLayoutInflater();
-
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
         builder.setTitle("Edit Planet");
 
-        builder.setView(inflater.inflate(R.layout.dlg_edit_planet, null));
+        final DialogEditPlanet view = new DialogEditPlanet(context, p);
+
+        builder.setView(view);
 
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                // Update planet values
-                //SeekBar slider = (SeekBar) findViewById(R.id.planetSizeSlider);
-
-                //planet.setRadius(RAD_MIN + (float) slider.getProgress());
-
+                view.savePlanetSettings();
             }
         });
 
@@ -1032,13 +1024,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         AlertDialog dlg = builder.create();
 
-        // Fill the dialog values
-        /*
-        SeekBar slider = (SeekBar) dlg.findViewById(R.id.planetSizeSlider);
+        view.loadPlanetSettings();
 
-        slider.setMax((int) RAD_DEL);
-        slider.setProgress((int) ((planet.getRadius() - RAD_MIN) / RAD_DEL));
-        */
         dlg.show();
     }
 
