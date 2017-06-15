@@ -14,14 +14,19 @@ public class Star extends StellarObject {
     static final int STAR_COLOR = Color.rgb(245, 233, 100);
 
     static final float STAR_RADIUS = 25;
-    static final float STAR_COLLECTION_RADIUS = 35;
+    static final float STAR_COLLECTION_RADIUS = 45;
 
     private boolean collected;
 
     private Paint pStar = new Paint();
+    private Paint pStarOutline = new Paint();
 
     private void setupPainters() {
         pStar.setColor(STAR_COLOR);
+
+        pStarOutline.setColor(STAR_COLOR);
+        pStarOutline.setStyle(Paint.Style.STROKE);
+        pStarOutline.setStrokeWidth(1);
     }
 
     public Star() {
@@ -69,5 +74,7 @@ public class Star extends StellarObject {
         p.lineTo(x, y-r);
 
         canvas.drawPath(p, pStar);
+
+        canvas.drawCircle(x, y, STAR_COLLECTION_RADIUS, pStarOutline);
     }
 }
