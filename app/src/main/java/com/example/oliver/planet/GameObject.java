@@ -33,6 +33,10 @@ public class GameObject {
         pos.set(x,y);
     }
 
+    public void move(float x, float y) {
+        setPos(pos.x + x, pos.y + y);
+    }
+
     public float distanceSquared(float x, float y) {
         float dx = x - pos.x;
         float dy = y - pos.y;

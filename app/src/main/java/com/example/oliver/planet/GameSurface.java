@@ -215,10 +215,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     !level.ship.hasCrashed() &&
                     dist > Ship.SELECTION_RADIUS_OUTER) {
 
-                level.ship.turnEngineOn();
                 level.ship.setThrust((dist - Ship.SELECTION_RADIUS_OUTER) / 500);
             } else {
-                level.ship.turnEngineOff();
+                level.ship.setThrust(0);
             }
         }
     }
@@ -236,7 +235,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         if (shipBeingDragged) {
             updateShipTouch(touchLast);
         } else {
-            level.ship.turnEngineOff();
+            // Turn ship engine off
+            level.ship.setThrust(0);
         }
 
         level.update();
@@ -268,12 +268,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private void updateTimers() {
 
-        if (lookAwayTimer > 0) {
+        if (mapBeingDragged || shipBeingDragged || stellarObjectBeingDragged != null)
+        {
+            lookAwayTimer = LOOK_AWAY_TIMER_RESET;
+        } else if (lookAwayTimer > 0) {
             lookAwayTimer--;
-        } else if (mapBeingDragged || shipBeingDragged) {
-            // Don't move screen in these cases
-        } else if (stellarObjectBeingDragged != null) {
-            // Don't move screen if planet is being dragged
         } else {
             double d = (mapOffset.x * mapOffset.x) + (mapOffset.y * mapOffset.y);
 
@@ -831,6 +830,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         float x = event.getX();
         float y = event.getY();
 
+        float dx = x - touchLast.x;
+        float dy = y - touchLast.y;
+
         double d;
 
         PointF worldPos = toGrid(getMapCoordsFromScreenPos(x, y), 20);
@@ -881,7 +883,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 }
 
                 if (stellarObjectBeingDragged != null) {
-                    stellarObjectBeingDragged.setUserPos(worldPos.x, worldPos.y);
+                    stellarObjectBeingDragged.move(dx, dy);
                 } else if (shipBeingDragged) {
 
                 } else {
@@ -895,9 +897,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 stopLongPress();
 
-                if (level.ship.isEngineOn()) {
-                    level.ship.turnEngineOff();
-                } else if (shipBeingDragged && !level.ship.isReleased()) {
+                level.ship.setThrust(0);
+                if (shipBeingDragged && !level.ship.isReleased()) {
 
                     if (dShip > Ship.SELECTION_RADIUS_OUTER) {
 

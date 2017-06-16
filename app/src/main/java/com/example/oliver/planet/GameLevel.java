@@ -258,6 +258,8 @@ public class GameLevel {
     private final String KEY_STAR_ARRAY = "Stars";
     private final String KEY_WORMHOLE_ARRAY = "Wormhole";
     private final String KEY_ENDZONE = "Endzone";
+    private final String KEY_USES_FUEL = "HasFuel";
+    private final String KEY_STARTING_FUEL = "StartingFuel";
 
     public boolean encodeToJson(JSONObject json) {
 

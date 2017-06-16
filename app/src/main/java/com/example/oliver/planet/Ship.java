@@ -38,8 +38,8 @@ public class Ship extends GameObject {
 
     public float fuel = 0;
     private float thrust = 0;
-    public boolean engineOn = false;
     static final float MAX_THRUST = 0.35f;
+    static final float MIN_THRUST = 0.01f;
     //private final float THRUST_INCREMENT = MAX_THRUST / 25;
     static final float MAX_FUEL = 10000;
     static final float SUN_FUEL_RECHARGE = 0.5f;
@@ -50,6 +50,11 @@ public class Ship extends GameObject {
     private boolean useBreadcrumbs = true;
     private final int MAX_BREADCRUMBS = 500;
     private final int BREADCRUMB_HISTORY = 3;
+
+    // Move history
+    private Vector<GameIncrement> increments = new Vector<GameIncrement>();
+    private GameIncrement nextIncrement = null;
+    private int gameStep = 0;
 
     // Auto-rotation timer
     private double targetAngle = 0.0f;
@@ -107,17 +112,6 @@ public class Ship extends GameObject {
         return Math.sqrt(speed.x * speed.x + speed.y * speed.y);
     }
 
-    public boolean isEngineOn() { return engineOn; }
-
-    public void turnEngineOn() {
-        engineOn = true;
-    }
-
-    public void turnEngineOff() {
-        engineOn = false;
-        thrust = 0;
-    }
-
     public Ship(float x, float y, float a) {
         super(x,y);
         angle = a;
@@ -134,6 +128,8 @@ public class Ship extends GameObject {
 
         rotationTimer = MAX_ROTATION_TIMER;
         targetAngle = aTarget;
+
+        nextIncrement.setAngle(targetAngle);
     }
 
     private void rotateTowards(double targetAngle) {
@@ -247,6 +243,9 @@ public class Ship extends GameObject {
         released = false;
 
         transferBreadcrumbs();
+
+        gameStep = 0;
+        nextIncrement = new GameIncrement(0);
     }
 
     public void resetAcceleration() {
@@ -338,7 +337,7 @@ public class Ship extends GameObject {
 
     public void setThrust(float t) {
 
-        if (t < 0) {
+        if (t <= MIN_THRUST) {
             t = 0;
         }
 
@@ -347,6 +346,12 @@ public class Ship extends GameObject {
         }
 
         thrust = t;
+
+        nextIncrement.setThrust(thrust);
+    }
+
+    private boolean isThrusting() {
+        return (thrust > MIN_THRUST) && (fuel > 0);
     }
 
     /**
@@ -354,8 +359,7 @@ public class Ship extends GameObject {
      */
     private void applyThrust() {
 
-        if (!engineOn || fuel <= 0) {
-            thrust = 0;
+        if (!isThrusting()) {
             return;
         }
 
@@ -376,6 +380,18 @@ public class Ship extends GameObject {
     }
 
     public void move() {
+
+        if (gameStep == 0) {
+            //TODO
+        }
+
+        if (nextIncrement.hasAngle || nextIncrement.hasThrust) {
+            increments.add(nextIncrement);
+        }
+
+        gameStep++;
+
+        nextIncrement = new GameIncrement(gameStep);
 
         applyThrust();
 
@@ -494,9 +510,7 @@ public class Ship extends GameObject {
 
         if (!crashed &&
             released &&
-            engineOn &&
-            fuel > 0 &&
-            thrust > 0) {
+            isThrusting()) {
 
             drawThrustJet(canvas);
         }
