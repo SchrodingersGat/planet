@@ -154,9 +154,13 @@ public class Ship extends GameObject {
             delta += 2 * Math.PI;
         }
 
-
         if (Math.abs(delta) > 0.001) {
             targetAngle = aTarget;
+
+            if (!isReleased()) {
+                angle = targetAngle;
+            }
+
             nextMove.setAngle(targetAngle);
         }
     }
@@ -214,16 +218,24 @@ public class Ship extends GameObject {
 
         d -= SELECTION_RADIUS_OUTER;
 
+        // Split into segments
+        final int LAUNCH_SEG = 10;
+
+        d /= MAX_SPEED;
+        d *= LAUNCH_SEG;
+
+        d = ((int) (d + 0.5)) / LAUNCH_SEG;
+        d *= MAX_SPEED;
+
         if (d < 0) {
             d = 0;
         }
 
-        //d /= 5;
-
         if (d > MAX_SPEED) {
-            d = (float) MAX_SPEED;
+            d = MAX_SPEED;
         }
 
+        setTargetAngle(Math.atan2(y, x));
         angle = Math.atan2(y, x);
 
         // Add the first movement history

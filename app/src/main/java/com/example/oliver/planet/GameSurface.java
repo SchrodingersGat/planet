@@ -203,6 +203,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         PointF worldPos = getMapCoordsFromScreenPos(screenPos.x, screenPos.y);
 
         float dist = level.ship.distanceTo(worldPos.x, worldPos.y);
+
         double angle = Math.atan2(
                 level.ship.getY() - worldPos.y,
                 level.ship.getX() - worldPos.x);
