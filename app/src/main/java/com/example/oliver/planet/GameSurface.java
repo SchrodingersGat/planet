@@ -215,7 +215,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     !level.ship.hasCrashed() &&
                     dist > Ship.SELECTION_RADIUS_OUTER) {
 
-                level.ship.setThrust((dist - Ship.SELECTION_RADIUS_OUTER) / 500);
+                dist -= Ship.SELECTION_RADIUS_OUTER;
+                dist /= 0.2 * SCREEN_MIN;
+                dist *= Ship.MAX_THRUST;
+
+                level.ship.setThrust(dist);
             } else {
                 level.ship.setThrust(0);
             }

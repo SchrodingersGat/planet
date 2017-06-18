@@ -9,6 +9,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Canvas;
 import android.graphics.PointF;
+import android.util.Log;
+
 import java.util.Vector;
 
 public class Ship extends GameObject {
@@ -52,8 +54,8 @@ public class Ship extends GameObject {
     private final int BREADCRUMB_HISTORY = 3;
 
     // Move history
-    private Vector<GameIncrement> increments = new Vector<GameIncrement>();
-    private GameIncrement nextIncrement = null;
+    private Vector<GameIncrement> moveHistory = new Vector<GameIncrement>();
+    private GameIncrement nextMove = null;
     private int gameStep = 0;
 
     // Auto-rotation timer
@@ -127,9 +129,36 @@ public class Ship extends GameObject {
     public void setTargetAngle(double aTarget) {
 
         rotationTimer = MAX_ROTATION_TIMER;
-        targetAngle = aTarget;
 
-        nextIncrement.setAngle(targetAngle);
+        while (aTarget > Math.PI) {
+            aTarget -= 2 * Math.PI;
+        }
+
+        while (aTarget < -Math.PI) {
+            aTarget += 2 * Math.PI;
+        }
+
+        final double ANGLE_SEG = 15.0f * Math.PI / 180;
+
+        int a = (int) (aTarget / ANGLE_SEG);
+
+        aTarget = (double) a * ANGLE_SEG;
+
+        double delta = aTarget - targetAngle;
+
+        while (delta > Math.PI) {
+            delta -= 2 * Math.PI;
+        }
+
+        while (delta < -Math.PI) {
+            delta += 2 * Math.PI;
+        }
+
+
+        if (Math.abs(delta) > 0.001) {
+            targetAngle = aTarget;
+            nextMove.setAngle(targetAngle);
+        }
     }
 
     private void rotateTowards(double targetAngle) {
@@ -197,6 +226,12 @@ public class Ship extends GameObject {
 
         angle = Math.atan2(y, x);
 
+        // Add the first movement history
+        nextMove.setAngle(angle);
+        nextMove.setThrust(d);
+
+        increment();
+
         speed.x = d * (float) Math.cos(angle);
         speed.y = d * (float) Math.sin(angle);
 
@@ -244,8 +279,11 @@ public class Ship extends GameObject {
 
         transferBreadcrumbs();
 
+        Log.i("moves", Integer.toString(moveHistory.size()));
+
+        moveHistory.clear();
         gameStep = 0;
-        nextIncrement = new GameIncrement(0);
+        nextMove = new GameIncrement(0);
     }
 
     public void resetAcceleration() {
@@ -337,6 +375,16 @@ public class Ship extends GameObject {
 
     public void setThrust(float t) {
 
+        final int THRUST_STEPS = 5;
+
+        // Limit to set number of thrust increments
+        float r = t / MAX_THRUST;
+        r *= THRUST_STEPS;
+
+        r = ((int) (r + 0.5));
+
+        t = (float) r / THRUST_STEPS * MAX_THRUST;
+
         if (t <= MIN_THRUST) {
             t = 0;
         }
@@ -345,9 +393,14 @@ public class Ship extends GameObject {
             t = MAX_THRUST;
         }
 
+        // Ignore if the new value is the same
+        if (Math.abs(t - thrust) < 0.0001) {
+            return;
+        }
+
         thrust = t;
 
-        nextIncrement.setThrust(thrust);
+        nextMove.setThrust(thrust);
     }
 
     private boolean isThrusting() {
@@ -365,7 +418,7 @@ public class Ship extends GameObject {
 
         float t = thrust;
 
-        if (t < 0) {
+        if (t <= MIN_THRUST) {
             t = 0;
         }
 
@@ -379,19 +432,27 @@ public class Ship extends GameObject {
         acceleration.y += t * (float) Math.sin(angle);
     }
 
-    public void move() {
+    private void increment() {
+        if (nextMove == null) {
 
-        if (gameStep == 0) {
-            //TODO
         }
-
-        if (nextIncrement.hasAngle || nextIncrement.hasThrust) {
-            increments.add(nextIncrement);
+        else if (nextMove.hasThrust || nextMove.hasAngle) {
+            moveHistory.add(nextMove);
         }
 
         gameStep++;
 
-        nextIncrement = new GameIncrement(gameStep);
+        nextMove = new GameIncrement(gameStep);
+    }
+
+    // Break from recorded course
+    public void newCourse() {
+
+    }
+
+    public void move() {
+
+        increment();
 
         applyThrust();
 
