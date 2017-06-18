@@ -889,6 +889,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 if (stellarObjectBeingDragged != null) {
                     stellarObjectBeingDragged.move(dx, dy);
+
+                    level.resetOrbits();
+
                 } else if (shipBeingDragged) {
 
                 } else {

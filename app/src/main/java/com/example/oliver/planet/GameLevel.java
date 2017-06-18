@@ -68,6 +68,12 @@ public class GameLevel {
         wormholes.clear();
     }
 
+    public void resetOrbits() {
+        for (int i=0; i<planets.size(); i++) {
+            planets.get(i).resetOrbit();
+        }
+    }
+
     /*
     Reset the level to default conditions
      */

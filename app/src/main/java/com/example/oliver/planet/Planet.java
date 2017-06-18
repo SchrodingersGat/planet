@@ -42,7 +42,7 @@ public class Planet extends StellarObject {
     }
 
     // Acceleration constant
-    private final float G = 500.0f;
+    private final float G = 350.0f;
 
     /* Painters */
     private Paint pPlanet = new Paint();
@@ -121,7 +121,8 @@ public class Planet extends StellarObject {
         double x = orbit.getX() + distance * Math.cos(angle);
         double y = orbit.getY() + distance * Math.sin(angle);
 
-        setPos((float) x, (float) y);
+        pos.x = (float) x;
+        pos.y = (float) y;
 
         resetOrbit();
     }
@@ -160,6 +161,7 @@ public class Planet extends StellarObject {
     Update the orbit of this planet around a parent planet
      */
     public void updateOrbit() {
+
         if (orbit == null) {
             return;
         }
@@ -184,7 +186,12 @@ public class Planet extends StellarObject {
         }
     }
 
-    private void resetOrbit() {
+    public void resetOrbit() {
+
+        if (orbit == null) {
+            return;
+        }
+
         orbitAngle = orbitStartingAngle;
         updateOrbit();
     }
@@ -229,13 +236,15 @@ public class Planet extends StellarObject {
     }
 
     @Override
-    public void setUserPos(float x, float y) {
+    public void setPos(float x, float y) {
 
-        setPos(x, y);
+        super.setPos(x, y);
 
         if (orbit != null) {
             orbitPlanet(orbit);
         }
+
+        updateAtmosphere();
     }
 
     /*
@@ -414,13 +423,6 @@ public class Planet extends StellarObject {
         }
 
         canvas.drawCircle(pos.x, pos.y, radius, pPlanet);
-    }
-
-    @Override
-    public void setPos(float x, float y) {
-        super.setPos(x, y);
-
-        updateAtmosphere();
     }
 
     @Override

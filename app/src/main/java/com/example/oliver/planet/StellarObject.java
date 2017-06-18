@@ -114,8 +114,4 @@ public class StellarObject extends GameObject {
 
         return true;
     }
-
-    public void setUserPos(float x, float y) {
-        setPos(x, y);
-    }
 }
